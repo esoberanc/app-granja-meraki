@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Monitoreo de Granja Tenebrio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f3f5;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        .status {
+            margin: 10px;
+            font-size: 18px;
+        }
+        .green-dot {
+            height: 12px;
+            width: 12px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .red-dot {
+            height: 12px;
+            width: 12px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .sensor-box {
+            position: absolute;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+        .green { background-color: #2ecc71; }
+        .amber { background-color: #f39c12; }
+        .red { background-color: #e74c3c; }
+        .blue { background-color: #2980b9; }
+        .controls {
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            color: white;
+            margin: 0 10px;
+        }
+        .btn-primary { background-color: #2d80ff; }
+        .btn-purple { background-color: #8e44ad; }
+        .dashboard-container {
+            position: relative;
+            display: inline-block;
+        }
+        .dashboard-image {
+            width: 90vw;
+            max-width: 800px;
+            height: auto;
+        }
+        #panel-button, #graph-button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📡 Monitoreo de Granja Tenebrio</h1>
+    <div class="controls">
+        <button id="toggleButton" class="btn-primary">⏹️ Detener monitoreo</button>
+        <div class="status">
+            <span class="green-dot" id="statusDot"></span> <span id="statusText">Monitoreo activo</span>
+        </div>
+        <button id="panel-button" class="btn-purple" onclick="location.href='/mt40'">🔌 Ver panel MT40</button>
+        <button id="graph-button" class="btn-purple" onclick="location.href='/graficas'">📈 Ver gráficas históricas</button>
+    </div>
+    <div class="dashboard-container">
+        <img src="/static/Granja.png" class="dashboard-image" />
+        <!-- Posiciones simuladas para los sensores -->
+        <div class="sensor-box green" style="top: 100px; left: 220px;">25.6°C</div>
+        <div class="sensor-box amber" style="top: 160px; left: 220px;">56%</div>
+        <div class="sensor-box blue" style="top: 220px; left: 100px;">8.7 W</div>
+        <div class="sensor-box blue" style="top: 220px; left: 520px;">137 W</div>
+        <div class="sensor-box green" style="top: 100px; left: 520px;">25.7°C</div>
+        <div class="sensor-box amber" style="top: 160px; left: 520px;">630 ppm</div>
+        <div class="sensor-box green" style="top: 300px; left: 520px;">Good 2 µg/m³</div>
+        <div class="sensor-box amber" style="top: 360px; left: 520px;">Moderate 41 dB</div>
+        <div class="sensor-box green" style="top: 420px; left: 270px;">Closed</div>
+    </div>
+
+    <script>
+        let isRunning = true;
+        document.getElementById("toggleButton").addEventListener("click", () => {
+            isRunning = !isRunning;
+            const btn = document.getElementById("toggleButton");
+            const dot = document.getElementById("statusDot");
+            const status = document.getElementById("statusText");
+
+            if (isRunning) {
+                btn.textContent = "⏹️ Detener monitoreo";
+                dot.className = "green-dot";
+                status.textContent = "Monitoreo activo";
+            } else {
+                btn.textContent = "▶️ Iniciar monitoreo";
+                dot.className = "red-dot";
+                status.textContent = "Monitoreo detenido";
+            }
+        });
+    </script>
+</body>
+</html>
