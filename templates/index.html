@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Monitoreo Meraki
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  
+window.addEventListener("DOMContentLoaded", () => {
+    intervalo = setInterval(() => obtenerDatos(true), 10000);
+});
+
+</script>
+  <style>
+   #granja-container {
+      position: relative;
+      width: 621px;
+      height: 409px;
+    }
+    #granja-img {
+      width: 100%;
+      height: auto;
+    }
+    .cuadro {
+      position: absolute;
+      width: 60px;
+      height: 68px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      color: white;
+      text-align: center;
+      padding: 5px;
+      white-space: pre-line;
+    }
+
+    #cuadro-9 { top: 147px; left: 25px; } /* Watts 1*/
+    #cuadro-10 { top: 130px; left: 450px; } /* Watts 2*/
+#cuadro-11 { top: 145px; left: 225px; }/* Hum 1*/
+#cuadro-12 { top: 320px; left: 225px; } /* Hum 2*/
+#cuadro-13 { top: 310px; left: 515px; } /* Temp 3*/
+    #cuadro-1 { top: 70px; left: 225px; } /* Temp 1*/
+    #cuadro-2 { top: 245px; left: 225px; } /* Temp 2 */
+    #cuadro-4 { top: 230px; left: 515px; } /* CO2*/
+    #cuadro-5 { top: 310px; left: 435px; } /* Noise */
+    #cuadro-6 { top: 230px; left: 435px; } /* PM2.5 */
+    #cuadro-8 { top: 378px; left: 284px; } /* Door */
+  </style>
+ </head>
+ <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen text-center">
+  <div style="position: absolute; top: 20px; right: 20px;">
+   <a href="/mt40" style="background-color: #2c3e50; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-family: sans-serif; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+    🔌 Ver Panel MT40
+   </a>
+  </div>
+  <div style="position: absolute; top: 70px; right: 20px;">
+   <a href="/graficas" style="background-color: #1e3a8a; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-family: sans-serif; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+    📊 Ver Gráficas
+   </a>
+  </div>
+  <h1 class="text-2xl font-bold mt-6 mb-4">
+   📡 Monitoreo de Granja Tenebrio
+  </h1>
+  <button class="mb-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded shadow" id="boton-toggle" onclick="toggleMonitoreo()">
+   ⏹️ Detener monitoreo
+  </button>
+  <p class="mb-4 text-sm text-gray-700 font-medium" id="estado">
+   🟢 Monitoreo activo
+  </p>
+  <div class="mb-4 text-lg font-semibold text-center" id="estado-general">
+  </div>
+  <div id="granja-container">
+   <img alt="Granja" id="granja-img" src="Granja.png"/>
+   <div class="cuadro" id="cuadro-1">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-2">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-4">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-5">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-6">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-8">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-9">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-10">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-11">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-12">
+    --
+   </div>
+   <div class="cuadro" id="cuadro-13">
+    --
+   </div>
+  </div>
+  <script>
+   let intervalo = null;
+    let activo = true;
+
+    async function getSensorData(guardar = false) {
+      const url = guardar ? "/sensor-data?guardar=true" : "/sensor-data";
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const actualizar = (id, texto, color) => {
+          const el = document.getElementById(id);
+          el.textContent = texto;
+          el.style.backgroundColor = color;
+        };
+
+        const green = "#15803d";
+        const yellow = "#ca8a04";
+        const red = "#b91c1c";
+        const blue = "#0e7490";
+
+        if (data.sensor1 !== undefined)
+          actualizar("cuadro-1", `${data.sensor1.toFixed(1)}°C`, data.sensor1 < 22 || data.sensor1 > 30 ? red : (data.sensor1 < 24 || data.sensor1 > 28 ? yellow : green));
+
+        if (data.sensor2 !== undefined)
+          actualizar("cuadro-2", `${data.sensor2.toFixed(1)}°C`, data.sensor2 < 22 || data.sensor2 > 30 ? red : (data.sensor2 < 24 || data.sensor2 > 28 ? yellow : green));
+
+        if (data.multi1_co2 !== undefined) {
+          const ppm = data.multi1_co2;
+          const color = ppm <= 600 ? green : ppm <= 800 ? yellow : red;
+          actualizar("cuadro-4", `${ppm} ppm`, color);
+        }
+
+        if (data.multi1_noise !== undefined) {
+          const n = data.multi1_noise;
+          let texto = "Noisy", color = red, icon = "🔊";
+          if (n <= 40) [texto, color, icon] = ["Quiet", green, "🔈"];
+          else if (n <= 65) [texto, color, icon] = ["Moderate", yellow, "🔉"];
+          actualizar("cuadro-5", `${icon}
+${texto}
+${n} dB`, color);
+        }
+
+        if (data.multi1_pm25 !== undefined) {
+          const p = data.multi1_pm25;
+          let texto = "Poor", color = red;
+          if (p <= 40) [texto, color] = ["Good", green];
+          else if (p <= 70) [texto, color] = ["Moderate", yellow];
+          actualizar("cuadro-6", `
+${texto}
+${p} µg/m³`, color);
+        }
+
+        if (data.puerta1 !== undefined) {
+          const estado = data.puerta1 === "open" ? "Opened" : "Closed";
+          const color = data.puerta1 === "open" ? red : green;
+          actualizar("cuadro-8", estado, color);
+        }
+
+        if (data.power1 !== undefined)
+          actualizar("cuadro-9", `⚡
+${data.power1.toFixed(1)} W`, blue);
+
+        
+        if (data.sensor1_humidity !== undefined) {
+          const h = data.sensor1_humidity;
+          const color = h >= 60 && h <= 70 ? green : (h >= 50 && h <= 75 ? yellow : red);
+          actualizar("cuadro-11", `${h}%`, color);
+        }
+
+        if (data.sensor2_humidity !== undefined) {
+          const h = data.sensor2_humidity;
+          const color = h >= 60 && h <= 70 ? green : (h >= 50 && h <= 75 ? yellow : red);
+          actualizar("cuadro-12", `${h}%`, color);
+        }
+
+        if (data.multi1_temp !== undefined) {
+          const t = data.multi1_temp;
+          const color = t < 22 || t > 30 ? red : (t < 24 || t > 28 ? yellow : green);
+          actualizar("cuadro-13", `${t.toFixed(1)}°C`, color);
+        }
+
+        
+        // Evaluación ambiental general
+        let score = 0;
+        let total = 0;
+
+        const evaluar = (valor, idealMin, idealMax, modMin, modMax) => {
+          total++;
+          if (valor >= idealMin && valor <= idealMax) return 1;
+          if (valor >= modMin && valor <= modMax) return 0.5;
+          return 0;
+        };
+
+        if (data.sensor1 !== undefined)
+          score += evaluar(data.sensor1, 24, 28, 22, 30);
+        if (data.sensor2 !== undefined)
+          score += evaluar(data.sensor2, 24, 28, 22, 30);
+        if (data.multi1_temp !== undefined)
+          score += evaluar(data.multi1_temp, 24, 28, 22, 30);
+        if (data.sensor1_humidity !== undefined)
+          score += evaluar(data.sensor1_humidity, 60, 70, 50, 75);
+        if (data.sensor2_humidity !== undefined)
+          score += evaluar(data.sensor2_humidity, 60, 70, 50, 75);
+        if (data.multi1_co2 !== undefined)
+          score += evaluar(data.multi1_co2, 0, 800, 801, 1000);
+        if (data.multi1_pm25 !== undefined)
+          score += evaluar(data.multi1_pm25, 0, 40, 41, 70);
+        if (data.multi1_noise !== undefined)
+          score += evaluar(data.multi1_noise, 0, 40, 41, 65);
+
+        const estadoGeneral = document.getElementById("estado-general");
+        if (total > 0) {
+          const promedio = (score / total) * 100;
+          if (promedio >= 80) {
+            estadoGeneral.textContent = "✅ Ambiente óptimo";
+            estadoGeneral.style.color = "#15803d";
+          } else if (promedio >= 50) {
+            estadoGeneral.textContent = "⚠️ Ambiente moderado";
+            estadoGeneral.style.color = "#ca8a04";
+          } else {
+            estadoGeneral.textContent = "🚨 Ambiente crítico";
+            estadoGeneral.style.color = "#b91c1c";
+          }
+        }
+
+        if (data.power2 !== undefined)
+          actualizar("cuadro-10", `⚡
+${data.power2.toFixed(1)} W`, blue);
+
+      } catch (error) {
+        console.error("Error:", error);
+        ["cuadro-1", "cuadro-2", "cuadro-4", "cuadro-5", "cuadro-6", "cuadro-8", "cuadro-9", "cuadro-10"].forEach(id => {
+          const el = document.getElementById(id);
+          el.textContent = "Err";
+          el.style.backgroundColor = "#6b7280";
+        });
+      }
+    }
+
+    function toggleMonitoreo() {
+      const estado = document.getElementById("estado");
+      const boton = document.getElementById("boton-toggle");
+
+      if (!activo) {
+        getSensorData(true);
+        intervalo = setInterval(() => getSensorData(true), 10000);
+        estado.textContent = "🟢 Monitoreo activo";
+        boton.textContent = "⏹️ Detener monitoreo";
+        activo = true;
+      } else {
+        clearInterval(intervalo);
+        estado.textContent = "🔴 Monitoreo detenido";
+        boton.textContent = "▶️ Iniciar monitoreo";
+        activo = false;
+      }
+    }
+
+    
+    function verResumenSemanal() {
+      const resumen = document.getElementById("resumen-semanal");
+      if (!resumen.classList.contains("hidden")) {
+        resumen.classList.add("hidden");
+        return;
+      }
+
+      fetch("/resumen-semanal")
+        .then(res => res.json())
+        .then(data => {
+          resumen.textContent = data.resumen;
+          resumen.classList.remove("hidden");
+        })
+        .catch(err => {
+          alert("Error al obtener el resumen semanal");
+        });
+    }
+
+    window.onload = () => getSensorData(false);
+  
+window.addEventListener("DOMContentLoaded", () => {
+    intervalo = setInterval(() => obtenerDatos(true), 10000);
+});
+
+</script>
+ </body>
+</html>
