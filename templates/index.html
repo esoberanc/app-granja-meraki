@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Monitoreo de Granja Tenebrio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        #dashboard {
+            position: relative;
+            display: inline-block;
+        }
+        #dashboard img {
+            width: 700px;
+        }
+        .cuadro {
+            position: absolute;
+            width: 100px;
+            height: 60px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            color: #000;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #sensor1 { top: 60px; left: 120px; }
+        #sensor2 { top: 220px; left: 120px; }
+        #sensor1_humidity { top: 130px; left: 120px; }
+        #sensor2_humidity { top: 290px; left: 120px; }
+
+        #multi1_temp { top: 60px; left: 500px; }
+        #multi1_co2 { top: 130px; left: 500px; }
+        #multi1_pm25 { top: 200px; left: 500px; }
+        #multi1_noise { top: 270px; left: 500px; }
+
+        #power1 { top: 60px; left: 310px; }
+        #power2 { top: 130px; left: 310px; }
+        #powerFactor1 { top: 200px; left: 310px; }
+        #powerFactor2 { top: 270px; left: 310px; }
+
+        #puerta1 { top: 350px; left: 310px; }
+    </style>
+</head>
+<body>
+    <h1>📡 Monitoreo de Granja Tenebrio</h1>
+
+    <div id="dashboard">
+        <img src="/static/Granja.png" alt="Granja">
+        <div id="sensor1" class="cuadro">--</div>
+        <div id="sensor2" class="cuadro">--</div>
+        <div id="sensor1_humidity" class="cuadro">--</div>
+        <div id="sensor2_humidity" class="cuadro">--</div>
+
+        <div id="multi1_temp" class="cuadro">--</div>
+        <div id="multi1_co2" class="cuadro">--</div>
+        <div id="multi1_pm25" class="cuadro">--</div>
+        <div id="multi1_noise" class="cuadro">--</div>
+
+        <div id="power1" class="cuadro">--</div>
+        <div id="power2" class="cuadro">--</div>
+        <div id="powerFactor1" class="cuadro">--</div>
+        <div id="powerFactor2" class="cuadro">--</div>
+
+        <div id="puerta1" class="cuadro">--</div>
+    </div>
+
+    <script>
+        async function cargarSensores() {
+            try {
+                const res = await fetch("/sensor-data");
+                const data = await res.json();
+                for (const key in data) {
+                    const el = document.getElementById(key);
+                    if (el) {
+                        el.textContent = data[key];
+                    }
+                }
+            } catch (err) {
+                console.error("Error al obtener datos de sensores:", err);
+            }
+        }
+
+        setInterval(cargarSensores, 5000);
+        window.onload = cargarSensores;
+    </script>
+</body>
+</html>
