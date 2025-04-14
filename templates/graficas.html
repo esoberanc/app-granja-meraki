@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gráfica Histórica - MT10 Temp1</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f4f8;
+      padding: 40px;
+      text-align: center;
+    }
+    canvas {
+      max-width: 800px;
+      margin: auto;
+    }
+    .btn-back {
+      margin-bottom: 30px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-back:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <button class="btn-back" onclick="window.location.href='/'">← Volver al Dashboard</button>
+  <h2>Temperatura Histórica - Sensor 1 (MT10)</h2>
+  <canvas id="tempChart"></canvas>
+
+  <script>
+    async function cargarDatos() {
+      const res = await fetch("/datos-graficas");
+      const datos = await res.json();
+
+      const fechas = datos.map(fila => fila.fecha);
+      const temps = datos.map(fila => parseFloat(fila.temp1));
+
+      new Chart(document.getElementById("tempChart"), {
+        type: "line",
+        data: {
+          labels: fechas,
+          datasets: [{
+            label: "MT10 Temp1 (°C)",
+            data: temps,
+            borderColor: "#007bff",
+            backgroundColor: "rgba(0, 123, 255, 0.1)",
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: "°C"
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: "Fecha"
+              }
+            }
+          }
+        }
+      });
+    }
+
+    cargarDatos();
+  </script>
+</body>
+</html>
