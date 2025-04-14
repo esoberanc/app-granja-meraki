@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Dashboard MT40 - Monitoreo de Consumo
+  </title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <style>
+   body {
+            background: #f5f7fa;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .value {
+            font-size: 2em;
+            color: #222;
+            font-weight: bold;
+        }
+
+        .label {
+            font-size: 0.9em;
+            color: #777;
+        }
+  </style>
+ </head>
+ <body>
+  <h1>
+   Dashboard MT40 - Consumo en Tiempo Real
+  </h1>
+  <div class="dashboard">
+   <div class="card">
+    <h2>
+     Consumo AC (W)
+    </h2>
+    <div class="value" id="power1">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Consumo Humidificador/Luz (W)
+    </h2>
+    <div class="value" id="power2">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Voltaje Fase 1 (V)
+    </h2>
+    <div class="value" id="voltage1">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Voltaje Fase 2 (V)
+    </h2>
+    <div class="value" id="voltage2">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Corriente Fase 1 (A)
+    </h2>
+    <div class="value" id="current1">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Corriente Fase 2 (A)
+    </h2>
+    <div class="value" id="current2">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Power Factor F1 (%)
+    </h2>
+    <div class="value" id="powerFactor1">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Power Factor F2 (%)
+    </h2>
+    <div class="value" id="powerFactor2">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Frecuencia F1 (Hz)
+    </h2>
+    <div class="value" id="frequency1">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Frecuencia F2 (Hz)
+    </h2>
+    <div class="value" id="frequency2">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Potencia Aparente F1 (VA)
+    </h2>
+    <div class="value" id="apparentPower1">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+   <div class="card">
+    <h2>
+     Potencia Aparente F2 (VA)
+    </h2>
+    <div class="value" id="apparentPower2">
+     --
+    </div>
+    <div class="label">
+     En tiempo real
+    </div>
+   </div>
+  </div>
+  <script>
+   async function cargarDatos() {
+            try {
+                const res = await fetch("/sensor-data");
+                const data = await res.json();
+
+                document.getElementById("power1").textContent = data.power1 + " W";
+                document.getElementById("power2").textContent = data.power2 + " W";
+                document.getElementById("voltage1").textContent = data.voltage1 + " V";
+                document.getElementById("voltage2").textContent = data.voltage2 + " V";
+                document.getElementById("current1").textContent = data.current1 + " A";
+                document.getElementById("current2").textContent = data.current2 + " A";
+                document.getElementById("powerFactor1").textContent = data.powerFactor1 + " %";
+                document.getElementById("powerFactor2").textContent = data.powerFactor2 + " %";
+                document.getElementById("frequency1").textContent = data.frequency1 + " Hz";
+                document.getElementById("frequency2").textContent = data.frequency2 + " Hz";
+                document.getElementById("apparentPower1").textContent = data.apparentPower1 + " VA";
+                document.getElementById("apparentPower2").textContent = data.apparentPower2 + " VA";
+            } catch (e) {
+                console.error("Error al cargar datos del MT40", e);
+            }
+        }
+
+        setInterval(cargarDatos, 5000);
+        cargarDatos();
+  </script>
+ </body>
+</html>
