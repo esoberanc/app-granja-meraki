@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Granja Tenebrio - Dashboard</title>
+  <style>
+    body {
+      background-color: #f1f5f9;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      background-color: #1e293b;
+      color: white;
+      margin: 0;
+      padding: 1rem;
+    }
+
+    #granja-container {
+      position: relative;
+      width: 950px;
+      margin: 20px auto;
+    }
+
+    #granja-img {
+      width: 100%;
+      border-radius: 12px;
+    }
+
+    .cuadro {
+      position: absolute;
+      min-width: 80px;
+      height: 45px;
+      padding: 10px;
+      color: white;
+      font-weight: bold;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+
+    /* Posiciones */
+    #sensor1 { top: 40px; left: 80px; }
+    #sensor2 { top: 100px; left: 80px; }
+    #sensor1_humidity { top: 170px; left: 80px; }
+    #sensor2_humidity { top: 240px; left: 80px; }
+    #multi1_temp { top: 40px; left: 780px; }
+    #multi1_co2 { top: 100px; left: 780px; }
+    #multi1_pm25 { top: 170px; left: 780px; }
+    #multi1_noise { top: 240px; left: 780px; }
+    #power1 { top: 310px; left: 80px; }
+    #power2 { top: 310px; left: 780px; }
+    #powerFactor1 { top: 370px; left: 80px; }
+    #powerFactor2 { top: 370px; left: 780px; }
+    #puerta1 { top: 460px; left: 420px; min-width: 100px; }
+
+  </style>
+</head>
+<body>
+  <h1>📡 Dashboard de Sensores - Granja Tenebrio</h1>
+  <div id="granja-container">
+    <img src="/static/Granja.png" id="granja-img" alt="Granja" />
+    <div id="sensor1" class="cuadro">--</div>
+    <div id="sensor2" class="cuadro">--</div>
+    <div id="sensor1_humidity" class="cuadro">--</div>
+    <div id="sensor2_humidity" class="cuadro">--</div>
+    <div id="multi1_temp" class="cuadro">--</div>
+    <div id="multi1_co2" class="cuadro">--</div>
+    <div id="multi1_pm25" class="cuadro">--</div>
+    <div id="multi1_noise" class="cuadro">--</div>
+    <div id="power1" class="cuadro">--</div>
+    <div id="power2" class="cuadro">--</div>
+    <div id="powerFactor1" class="cuadro">--</div>
+    <div id="powerFactor2" class="cuadro">--</div>
+    <div id="puerta1" class="cuadro">--</div>
+  </div>
+
+  <script>
+    async function cargarDatos() {
+      try {
+        const res = await fetch("/sensor-data");
+        const data = await res.json();
+
+        for (const key in data) {
+          const el = document.getElementById(key);
+          if (el) {
+            const valor = data[key];
+            if (key.includes("humidity")) {
+              el.textContent = valor + " %";
+              el.style.backgroundColor = valor < 50 || valor > 70 ? "#dc2626" : "#15803d";
+            } else if (key.includes("temp")) {
+              el.textContent = valor.toFixed(1) + " °C";
+              el.style.backgroundColor = valor < 22 || valor > 30 ? "#dc2626" : "#15803d";
+            } else if (key.includes("co2")) {
+              el.textContent = valor + " ppm";
+              el.style.backgroundColor = valor > 800 ? "#dc2626" : "#15803d";
+            } else if (key.includes("pm25")) {
+              el.textContent = valor + " µg/m³";
+              el.style.backgroundColor = valor > 70 ? "#dc2626" : (valor > 40 ? "#ca8a04" : "#15803d");
+            } else if (key.includes("noise")) {
+              el.textContent = valor + " dB";
+              el.style.backgroundColor = valor > 50 ? "#dc2626" : "#15803d";
+            } else if (key.includes("powerFactor") || key.includes("power")) {
+              el.textContent = valor + (key.includes("Factor") ? " %" : " W");
+              el.style.backgroundColor = "#0ea5e9";
+            } else if (key === "puerta1") {
+              el.textContent = valor === "open" ? "🚪 Abierta" : "✅ Cerrada";
+              el.style.backgroundColor = valor === "open" ? "#dc2626" : "#15803d";
+            } else {
+              el.textContent = valor;
+              el.style.backgroundColor = "#15803d";
+            }
+          }
+        }
+      } catch (err) {
+        console.error("❌ Error al obtener datos:", err);
+      }
+    }
+
+    setInterval(cargarDatos, 5000);
+    window.onload = cargarDatos;
+  </script>
+</body>
+</html>
