@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Monitoreo de Granja Tenebrio</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100 text-center p-4">
+    <h1 class="text-3xl font-bold mb-4">📡 Monitoreo de Granja Tenebrio</h1>
+
+    <button id="toggleButton" onclick="toggleMonitoreo()" class="bg-red-600 text-white font-bold py-2 px-4 rounded mb-2">
+        ⏹️ Detener monitoreo
+    </button>
+    <div id="statusText" class="mb-4 text-green-600 font-semibold">🟢 Monitoreo activo</div>
+
+    <div class="mb-4">
+        <button onclick="window.location.href='/mt40'" class="bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            🔌 Panel MT40
+        </button>
+    </div>
+
+    <img src="static/Granja.png" alt="Granja" class="mx-auto w-full max-w-4xl mb-4">
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto" id="sensorValues">
+        <div class="bg-white rounded shadow p-4" id="sensor1">Sensor 1</div>
+        <div class="bg-white rounded shadow p-4" id="sensor2">Sensor 2</div>
+        <div class="bg-white rounded shadow p-4" id="sensor1_humidity">Humedad 1</div>
+        <div class="bg-white rounded shadow p-4" id="sensor2_humidity">Humedad 2</div>
+        <div class="bg-white rounded shadow p-4" id="multi1_temp">Temp Multi</div>
+        <div class="bg-white rounded shadow p-4" id="multi1_co2">CO₂</div>
+        <div class="bg-white rounded shadow p-4" id="multi1_pm25">PM2.5</div>
+        <div class="bg-white rounded shadow p-4" id="multi1_noise">Ruido</div>
+        <div class="bg-white rounded shadow p-4" id="puerta1">Puerta</div>
+        <div class="bg-white rounded shadow p-4" id="power1">Potencia AC</div>
+        <div class="bg-white rounded shadow p-4" id="power2">Potencia Humidificador</div>
+        <div class="bg-white rounded shadow p-4" id="powerFactor1">Factor Potencia AC</div>
+        <div class="bg-white rounded shadow p-4" id="powerFactor2">Factor Potencia Humidificador</div>
+        <div class="bg-white rounded shadow p-4" id="apparentPower1">Potencia Aparente AC</div>
+        <div class="bg-white rounded shadow p-4" id="apparentPower2">Potencia Aparente Humidificador</div>
+        <div class="bg-white rounded shadow p-4" id="frequency1">Frecuencia AC</div>
+        <div class="bg-white rounded shadow p-4" id="frequency2">Frecuencia Humidificador</div>
+    </div>
+
+<script>
+let guardando = true;
+
+function toggleMonitoreo() {
+    guardando = !guardando;
+    const btn = document.getElementById("toggleButton");
+    const status = document.getElementById("statusText");
+    if (guardando) {
+        btn.innerText = "⏹️ Detener monitoreo";
+        btn.className = "bg-red-600 text-white font-bold py-2 px-4 rounded mb-2";
+        status.innerText = "🟢 Monitoreo activo";
+        status.className = "mb-4 text-green-600 font-semibold";
+    } else {
+        btn.innerText = "▶️ Iniciar monitoreo";
+        btn.className = "bg-blue-600 text-white font-bold py-2 px-4 rounded mb-2";
+        status.innerText = "🔴 Monitoreo detenido";
+        status.className = "mb-4 text-red-600 font-semibold";
+    }
+}
+
+function getSensorData() {
+    const url = `/sensor-data${guardando ? "?guardar=true" : ""}`;
+    axios.get(url).then(response => {
+        const data = response.data;
+        Object.entries(data).forEach(([key, val]) => {
+            const el = document.getElementById(key);
+            if (el) {
+                el.innerText = `${val} ${typeof val === "number" ? (key.includes("humidity") ? "%" : "") : ""}`;
+            }
+        });
+    }).catch(err => console.error("Error al obtener datos:", err));
+}
+
+setInterval(getSensorData, 10000);
+window.onload = getSensorData;
+</script>
+</body>
+</html>
