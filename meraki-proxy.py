@@ -63,7 +63,7 @@ def panel_mt40():
     return render_template("panel-mt40.html")
 
 SERVICE_ACCOUNT_FILE = "/etc/secrets/credentials.json"
-SPREADSHEET_ID = "TU_SPREADSHEET_ID"
+SPREADSHEET_ID = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
 SHEET_NAME = "Hoja1"
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
