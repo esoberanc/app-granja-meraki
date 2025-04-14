@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard MT40 - Monitoreo de Consumo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .value {
+            font-size: 2em;
+            color: #222;
+            font-weight: bold;
+        }
+
+        .label {
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard MT40 - Consumo en Tiempo Real</h1>
+
+    <div class="dashboard">
+        <div class="card">
+            <h2>Aire Acondicionado</h2>
+            <div class="value" id="power1">-- W</div>
+            <div class="label">Consumo actual</div>
+        </div>
+        <div class="card">
+            <h2>Humidificador + Luz</h2>
+            <div class="value" id="power2">-- W</div>
+            <div class="label">Consumo actual</div>
+        </div>
+        <div class="card">
+            <h2>Voltaje</h2>
+            <div class="value" id="voltage1">-- V / -- V</div>
+            <div class="label">Fase 1 / Fase 2</div>
+        </div>
+        <div class="card">
+            <h2>Corriente</h2>
+            <div class="value" id="current1">-- A / -- A</div>
+            <div class="label">Fase 1 / Fase 2</div>
+        </div>
+        <div class="card">
+            <h2>Factor de Potencia</h2>
+            <div class="value" id="pf1">-- % / -- %</div>
+            <div class="label">Fase 1 / Fase 2</div>
+        </div>
+        <div class="card">
+            <h2>Frecuencia</h2>
+            <div class="value" id="frequency">-- Hz / -- Hz</div>
+            <div class="label">Fase 1 / Fase 2</div>
+        </div>
+    </div>
+
+    <script>
+        async function cargarDatos() {
+            try {
+                const res = await fetch("/sensor-data");
+                const data = await res.json();
+
+                document.getElementById("power1").textContent = data.power1 + " W";
+                document.getElementById("power2").textContent = data.power2 + " W";
+                document.getElementById("voltage1").textContent = data.voltage1 + " V / " + data.voltage2 + " V";
+                document.getElementById("current1").textContent = data.current1 + " A / " + data.current2 + " A";
+                document.getElementById("pf1").textContent = data.powerFactor1 + " % / " + data.powerFactor2 + " %";
+                document.getElementById("frequency").textContent = data.frequency1 + " Hz / " + data.frequency2 + " Hz";
+            } catch (e) {
+                console.error("Error al cargar datos del MT40", e);
+            }
+        }
+
+        setInterval(cargarDatos, 5000);
+        cargarDatos();
+    </script>
+</body>
+</html>
