@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel MT40</title>
+  <style>
+    body {
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 40px;
+    }
+    h2 {
+      color: #333;
+    }
+    .grid-container {
+      display: flex;
+      gap: 40px;
+      margin-top: 30px;
+    }
+    .column {
+      flex: 1;
+    }
+    .cuadro {
+      background-color: #007bff;
+      color: #fff;
+      padding: 16px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    }
+    .cuadro span {
+      display: block;
+      font-size: 22px;
+      margin-top: 4px;
+    }
+    .back-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .back-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="window.location.href='/'">← Volver al Dashboard</button>
+  <h2>Mediciones MT40</h2>
+  <div class="grid-container">
+    <div class="column">
+      <div class="cuadro" id="power1">Power1<span>--</span></div>
+      <div class="cuadro" id="powerFactor1">Power Factor1<span>--</span></div>
+      <div class="cuadro" id="apparentPower1">Apparent Power1<span>--</span></div>
+      <div class="cuadro" id="voltage1">Voltage1<span>--</span></div>
+      <div class="cuadro" id="current1">Current1<span>--</span></div>
+      <div class="cuadro" id="frequency1">Frequency1<span>--</span></div>
+    </div>
+    <div class="column">
+      <div class="cuadro" id="power2">Power2<span>--</span></div>
+      <div class="cuadro" id="powerFactor2">Power Factor2<span>--</span></div>
+      <div class="cuadro" id="apparentPower2">Apparent Power2<span>--</span></div>
+      <div class="cuadro" id="voltage2">Voltage2<span>--</span></div>
+      <div class="cuadro" id="current2">Current2<span>--</span></div>
+      <div class="cuadro" id="frequency2">Frequency2<span>--</span></div>
+    </div>
+  </div>
+
+  <script>
+    async function getSensorData() {
+      try {
+        const res = await fetch('/sensor-data');
+        const data = await res.json();
+
+        const mostrar = (id, valor, sufijo = '') => {
+          const el = document.getElementById(id).querySelector('span');
+          el.innerText = valor !== undefined ? valor + sufijo : "--";
+        };
+
+        mostrar("power1", data.power1?.toFixed(1), " W");
+        mostrar("powerFactor1", data.powerFactor1, " %");
+        mostrar("apparentPower1", data.apparentPower1?.toFixed(1), " VA");
+        mostrar("voltage1", data.voltage1?.toFixed(1), " V");
+        mostrar("current1", data.current1?.toFixed(2), " A");
+        mostrar("frequency1", data.frequency1?.toFixed(1), " Hz");
+
+        mostrar("power2", data.power2?.toFixed(1), " W");
+        mostrar("powerFactor2", data.powerFactor2, " %");
+        mostrar("apparentPower2", data.apparentPower2?.toFixed(1), " VA");
+        mostrar("voltage2", data.voltage2?.toFixed(1), " V");
+        mostrar("current2", data.current2?.toFixed(2), " A");
+        mostrar("frequency2", data.frequency2?.toFixed(1), " Hz");
+      } catch (error) {
+        console.error("Error al obtener datos del MT40:", error);
+      }
+    }
+
+    setInterval(getSensorData, 10000);
+    getSensorData();
+  </script>
+</body>
+</html>
