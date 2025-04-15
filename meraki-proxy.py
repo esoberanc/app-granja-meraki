@@ -16,7 +16,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Cargar API key de OpenAI
-with open("secrets/openai_key.txt", "r") as f:
+with open("etc/secrets/openai_key.txt", "r") as f:
     openai.api_key = f.read().strip()
 
 # Configurar ID y rango de Sheets
