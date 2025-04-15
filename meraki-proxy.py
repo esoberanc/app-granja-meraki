@@ -135,4 +135,7 @@ def guardar_en_google_sheets(datos):
         logger.error(f"❌ Error guardando en Google Sheets: {e}")
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
