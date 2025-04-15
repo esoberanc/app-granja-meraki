@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Granja Inteligente</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: white;
+      background-image: url('/static/Granja.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 100vh;
+      position: relative;
+    }
+
+    #estado-monitoreo {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      padding: 12px 24px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: not-allowed;
+      font-size: 16px;
+    }
+
+    .cuadro {
+      position: absolute;
+      min-width: 100px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.15);
+      color: white;
+      font-size: 14px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Ejemplo de posición de cuadro */
+    #cuadro-1 { top: 100px; left: 100px; }
+  </style>
+</head>
+<body>
+
+  <div id="cuadro-1" class="cuadro">
+    Sensor 1<br>
+    <span id="sensor1">--</span> °C
+  </div>
+
+  <!-- Botón que indica estado de monitoreo -->
+  <button id="estado-monitoreo" disabled>Monitoreo activo ✅</button>
+
+  <script>
+    async function cargarDatos() {
+      try {
+        const res = await fetch("/sensor-data");
+        const data = await res.json();
+        if (data.sensor1) {
+          document.getElementById("sensor1").innerText = data.sensor1;
+        } else {
+          document.getElementById("sensor1").innerText = "Err";
+        }
+      } catch (e) {
+        document.getElementById("sensor1").innerText = "Err";
+      }
+    }
+
+    setInterval(cargarDatos, 5000);
+    cargarDatos();
+  </script>
+</body>
+</html>
