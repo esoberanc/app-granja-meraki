@@ -2,142 +2,134 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Granja de Tenebrio</title>
+    <title>Monitoreo de Granja Tenebrio</title>
     <style>
         body {
-            background-image: url('static/Granja.png');
-            background-size: cover;
-            background-position: center;
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            text-align: center;
+        }
+
+        .status-bar {
+            margin-top: 20px;
+        }
+
+        .status-bar button {
+            background-color: #28a745;
             color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: default;
         }
 
         .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            padding: 20px;
+            position: relative;
+            display: inline-block;
+            margin-top: 20px;
         }
 
-        .card {
-            width: 180px;
-            padding: 15px;
-            border-radius: 15px;
+        .background-img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .sensor-box {
+            position: absolute;
+            min-width: 90px;
+            padding: 10px;
+            border-radius: 12px;
             color: white;
-            text-align: center;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
-        }
-
-        .card h3 {
-            margin: 0;
-            font-size: 18px;
-        }
-
-        .card p {
-            margin: 5px 0 0;
-            font-size: 22px;
             font-weight: bold;
-        }
-
-        .verde {
-            background-color: #2ecc71;
-        }
-
-        .rojo {
-            background-color: #e74c3c;
-        }
-
-        .azul {
-            background-color: #3498db;
-        }
-
-        .gris {
-            background-color: #7f8c8d;
-        }
-
-        .panel {
+            font-size: 14px;
             text-align: center;
-            padding: 15px;
         }
 
-        #estado-monitoreo {
-            background-color: #27ae60;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: default;
-            margin-top: 10px;
-        }
+        .azul { background-color: #2962ff; }
+        .verde { background-color: #00c853; }
+        .rojo { background-color: #d50000; }
+        .amarillo { background-color: #ffab00; }
+        .purpura { background-color: #7c4dff; }
+
+        /* Ubicación de cada cuadro */
+        #sensor1-temp { top: 20px; left: 90px; }
+        #sensor1-hum { top: 80px; left: 90px; }
+
+        #sensor2-temp { top: 160px; left: 90px; }
+        #sensor2-hum { top: 220px; left: 90px; }
+
+        #mt15-temp { top: 20px; right: 90px; }
+        #mt15-co2 { top: 80px; right: 90px; }
+        #mt15-pm25 { top: 140px; right: 90px; }
+        #mt15-noise { top: 200px; right: 90px; }
+
+        #mt40-1 { bottom: 100px; left: 90px; }
+        #mt40-2 { bottom: 100px; right: 90px; }
+
+        #puerta { bottom: 40px; left: 280px; right: 280px; margin: auto; }
     </style>
 </head>
 <body>
-    <div class="panel">
-        <button id="estado-monitoreo" disabled>Monitoreo activo ✅</button>
+
+    <div class="status-bar">
+        <button disabled>✅ Monitoreo activo</button>
     </div>
 
-    <div class="container" id="dashboard">
-        <div class="card gris">
-            <h3>Temp Sensor 1</h3>
-            <p id="sensor1">--</p>
-        </div>
-        <div class="card gris">
-            <h3>Hum Sensor 1</h3>
-            <p id="sensor1_humidity">--</p>
-        </div>
-        <div class="card gris">
-            <h3>Temp Sensor 2</h3>
-            <p id="sensor2">--</p>
-        </div>
-        <div class="card gris">
-            <h3>Hum Sensor 2</h3>
-            <p id="sensor2_humidity">--</p>
-        </div>
-        <div class="card gris">
-            <h3>Temp Sensor MT15</h3>
-            <p id="multi1_temp">--</p>
-        </div>
-        <div class="card gris">
-            <h3>CO2</h3>
-            <p id="multi1_co2">--</p>
-        </div>
-        <div class="card gris">
-            <h3>PM2.5</h3>
-            <p id="multi1_pm25">--</p>
-        </div>
-        <div class="card gris">
-            <h3>Ruido</h3>
-            <p id="multi1_noise">--</p>
-        </div>
-        <div class="card gris">
-            <h3>Puerta</h3>
-            <p id="puerta1">--</p>
-        </div>
+    <div class="container">
+        <img class="background-img" src="/static/Granja.png" alt="Granja">
+
+        <!-- Sensores -->
+        <div id="sensor1-temp" class="sensor-box azul">-- °C</div>
+        <div id="sensor1-hum" class="sensor-box verde">-- %</div>
+
+        <div id="sensor2-temp" class="sensor-box azul">-- °C</div>
+        <div id="sensor2-hum" class="sensor-box verde">-- %</div>
+
+        <div id="mt15-temp" class="sensor-box verde">-- °C</div>
+        <div id="mt15-co2" class="sensor-box amarillo">-- ppm</div>
+        <div id="mt15-pm25" class="sensor-box verde">-- µg/m³</div>
+        <div id="mt15-noise" class="sensor-box amarillo">-- dB</div>
+
+        <div id="mt40-1" class="sensor-box purpura">-- W</div>
+        <div id="mt40-2" class="sensor-box purpura">-- W</div>
+
+        <div id="puerta" class="sensor-box rojo">--</div>
     </div>
 
     <script>
         async function cargarDatos() {
             try {
-                const respuesta = await fetch("/sensor-data");
-                const datos = await respuesta.json();
+                const response = await fetch('/sensor-data');
+                const data = await response.json();
 
-                for (const clave in datos) {
-                    const elemento = document.getElementById(clave);
-                    if (elemento) {
-                        elemento.textContent = isNaN(datos[clave]) ? datos[clave] : parseFloat(datos[clave]).toFixed(2);
-                    }
-                }
-            } catch (error) {
-                console.error("Error al obtener datos:", error);
+                document.getElementById("sensor1-temp").innerText = `${data.sensor1.toFixed(2)}°C`;
+                document.getElementById("sensor1-hum").innerText = `${data.sensor1_humidity} %`;
+
+                document.getElementById("sensor2-temp").innerText = `${data.sensor2.toFixed(2)}°C`;
+                document.getElementById("sensor2-hum").innerText = `${data.sensor2_humidity} %`;
+
+                document.getElementById("mt15-temp").innerText = `${data.multi1_temp.toFixed(2)}°C`;
+                document.getElementById("mt15-co2").innerText = `${data.multi1_co2} ppm`;
+                document.getElementById("mt15-pm25").innerText = `${data.multi1_pm25} µg/m³`;
+                document.getElementById("mt15-noise").innerText = `${data.multi1_noise} dB`;
+
+                document.getElementById("mt40-1").innerText = `${data.power1.toFixed(1)} W`;
+                document.getElementById("mt40-2").innerText = `${data.power2.toFixed(1)} W`;
+
+                document.getElementById("puerta").innerText = data.puerta1 === "open" ? "Abierta" : "Closed";
+                document.getElementById("puerta").classList.toggle("rojo", data.puerta1 === "open");
+                document.getElementById("puerta").classList.toggle("verde", data.puerta1 !== "open");
+
+            } catch (e) {
+                console.error("❌ Error al cargar datos:", e);
             }
         }
 
         setInterval(cargarDatos, 5000);
-        window.onload = cargarDatos;
+        cargarDatos();
     </script>
 </body>
 </html>
