@@ -1,139 +1,132 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Monitoreo de Granja Tenebrio</title>
-    <style>
-        body {
-            background-color: #f4f5f7;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-
-        h1 {
-            margin-top: 20px;
-        }
-
-        #monitoreo-indicador {
-            padding: 10px 20px;
-            background-color: #2ecc71;
-            color: white;
-            border-radius: 8px;
-            border: none;
-            font-size: 18px;
-            margin: 10px;
-        }
-
-        #panel-mt40 {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .contenedor {
-            position: relative;
-            display: inline-block;
-            margin-top: 10px;
-        }
-
-        .contenedor img {
-            width: 90vw;
-            max-width: 900px;
-            height: auto;
-        }
-
-        .sensor {
-            position: absolute;
-            width: 90px;
-            height: 60px;
-            font-weight: bold;
-            font-size: 16px;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 12px;
-        }
-
-        .azul { background-color: #007bff; }
-        .verde { background-color: #2ecc71; }
-        .amarillo { background-color: #f1c40f; color: black; }
-        .rojo { background-color: #e74c3c; }
-        .purpura { background-color: #8e44ad; }
-        .celeste { background-color: #1abc9c; }
-
-        /* Posiciones */
-        #t1 { top: 15%; left: 18%; }
-        #h1 { top: 25%; left: 18%; }
-        #t2 { top: 40%; left: 18%; }
-        #h2 { top: 50%; left: 18%; }
-        #puerta { top: 80%; left: 28%; }
-        #t3 { top: 20%; left: 50%; }
-        #co2 { top: 30%; left: 78%; }
-        #pm25 { top: 40%; left: 78%; }
-        #ruido { top: 50%; left: 78%; }
-        #watts1 { top: 60%; left: 78%; }
-        #watts2 { top: 70%; left: 78%; }
-
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monitoreo Granja</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url("static/Granja.png");
+      background-size: cover;
+      background-position: center;
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+    }
+    .sensor-box {
+      background-color: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px;
+      width: 180px;
+      text-align: center;
+    }
+    .sensor-box h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .sensor-box p {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .boton-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .boton {
+      background-color: green;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+    #panelButton {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <h1>📡 Monitoreo de Granja Tenebrio</h1>
-    <button id="monitoreo-indicador" disabled>✅ Monitoreo activo</button>
-    <button id="panel-mt40" onclick="location.href='/panel-mt40'">⚡ Ir al panel MT40</button>
+  <div class="boton-container">
+    <button class="boton" disabled>Monitoreo activo ✅</button>
+  </div>
 
-    <div class="contenedor">
-        <img src="/static/Granja.png" alt="Imagen de la granja">
-        <div id="t1" class="sensor azul">--</div>
-        <div id="h1" class="sensor verde">--</div>
-        <div id="t2" class="sensor azul">--</div>
-        <div id="h2" class="sensor verde">--</div>
-        <div id="puerta" class="sensor rojo">--</div>
-        <div id="t3" class="sensor verde">--</div>
-        <div id="co2" class="sensor amarillo">--</div>
-        <div id="pm25" class="sensor verde">--</div>
-        <div id="ruido" class="sensor amarillo">--</div>
-        <div id="watts1" class="sensor purpura">--</div>
-        <div id="watts2" class="sensor purpura">--</div>
-    </div>
+  <div class="container">
+    <div class="sensor-box"><h2>Temp Sensor 1</h2><p id="sensor1">--</p></div>
+    <div class="sensor-box"><h2>Humedad Sensor 1</h2><p id="sensor1_humidity">--</p></div>
 
-    <script>
-        async function obtenerDatos() {
-            try {
-                const response = await fetch("/sensor-data");
-                const data = await response.json();
+    <div class="sensor-box"><h2>Temp Sensor 2</h2><p id="sensor2">--</p></div>
+    <div class="sensor-box"><h2>Humedad Sensor 2</h2><p id="sensor2_humidity">--</p></div>
 
-                const set = (id, valor, unidad = "") => {
-                    const el = document.getElementById(id);
-                    if (el) el.innerText = `${valor}${unidad}`;
-                };
+    <div class="sensor-box"><h2>Temp Multi</h2><p id="multi1_temp">--</p></div>
+    <div class="sensor-box"><h2>CO₂</h2><p id="multi1_co2">--</p></div>
+    <div class="sensor-box"><h2>PM2.5</h2><p id="multi1_pm25">--</p></div>
+    <div class="sensor-box"><h2>Ruido</h2><p id="multi1_noise">--</p></div>
 
-                set("t1", data.sensor1, "°C");
-                set("t2", data.sensor2, "°C");
-                set("h1", data.sensor1_humidity, " %");
-                set("h2", data.sensor2_humidity, " %");
-                set("t3", data.multi1_temp, "°C");
-                set("co2", data.multi1_co2, " ppm");
-                set("pm25", data.multi1_pm25, " µg/m³");
-                set("ruido", `${data.multi1_noise} dB`);
-                set("watts1", data.power1, " W");
-                set("watts2", data.power2, " W");
+    <div class="sensor-box"><h2>Puerta</h2><p id="puerta1">--</p></div>
 
-                document.getElementById("puerta").innerText = data.puerta1 === "open" ? "Abierta" : "Closed";
+    <div class="sensor-box"><h2>Watt AC</h2><p id="power1">--</p></div>
+    <div class="sensor-box"><h2>Watt Humid.</h2><p id="power2">--</p></div>
 
-            } catch (error) {
-                console.error("Error al obtener datos:", error);
-            }
+    <div class="sensor-box"><h2>Factor Potencia AC</h2><p id="powerFactor1">--</p></div>
+    <div class="sensor-box"><h2>Factor Potencia Humid.</h2><p id="powerFactor2">--</p></div>
+
+    <div class="sensor-box"><h2>Potencia Aparente AC</h2><p id="apparentPower1">--</p></div>
+    <div class="sensor-box"><h2>Potencia Aparente Humid.</h2><p id="apparentPower2">--</p></div>
+
+    <div class="sensor-box"><h2>Voltaje AC</h2><p id="voltage1">--</p></div>
+    <div class="sensor-box"><h2>Voltaje Humid.</h2><p id="voltage2">--</p></div>
+
+    <div class="sensor-box"><h2>Corriente AC</h2><p id="current1">--</p></div>
+    <div class="sensor-box"><h2>Corriente Humid.</h2><p id="current2">--</p></div>
+
+    <div class="sensor-box"><h2>Frecuencia AC</h2><p id="frequency1">--</p></div>
+    <div class="sensor-box"><h2>Frecuencia Humid.</h2><p id="frequency2">--</p></div>
+  </div>
+
+  <button id="panelButton" onclick="window.location.href='/mt40'">Panel MT40</button>
+
+  <script>
+    function actualizarCuadro(id, valor) {
+      const elemento = document.getElementById(id);
+      if (elemento) {
+        elemento.textContent = valor ?? '--';
+      }
+    }
+
+    async function obtenerDatos() {
+      try {
+        const res = await fetch('/sensor-data');
+        const datos = await res.json();
+        for (const key in datos) {
+          actualizarCuadro(key, datos[key]);
         }
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    }
 
-        setInterval(obtenerDatos, 5000);
-        obtenerDatos();
-    </script>
+    setInterval(() => obtenerDatos(), 10000);
+    obtenerDatos(); // Primera llamada inmediata
+  </script>
 </body>
 </html>
