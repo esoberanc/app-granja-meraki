@@ -1,115 +1,93 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Monitoreo Granja</title>
+  <meta charset="UTF-8">
+  <title>Dashboard Granja</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-image: url("static/Granja.png");
+      font-family: sans-serif;
+      background: url("static/Granja.png") no-repeat center center fixed;
       background-size: cover;
-      background-position: center;
       margin: 0;
-      padding: 0;
-      color: #fff;
+      padding: 20px;
     }
     .container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
+      gap: 16px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      color: #000;
+      border-radius: 12px;
       padding: 20px;
-    }
-    .sensor-box {
-      background-color: rgba(0, 0, 0, 0.6);
-      border-radius: 10px;
-      padding: 15px;
-      margin: 10px;
-      width: 180px;
+      width: 160px;
       text-align: center;
-    }
-    .sensor-box h2 {
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
-    .sensor-box p {
-      font-size: 24px;
       font-weight: bold;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
     }
-    .boton-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
+    .title {
+      font-size: 16px;
+      margin-bottom: 8px;
     }
-    .boton {
+    .value {
+      font-size: 24px;
+      color: #003366;
+    }
+    .status-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
       background-color: green;
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 12px 20px;
       border-radius: 8px;
       font-size: 16px;
       cursor: not-allowed;
-      opacity: 0.8;
+      opacity: 0.85;
     }
-    #panelButton {
+    .panel-button {
       position: fixed;
-      bottom: 10px;
-      right: 10px;
+      bottom: 20px;
+      right: 20px;
       background-color: #007bff;
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 12px 20px;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 16px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="boton-container">
-    <button class="boton" disabled>Monitoreo activo ✅</button>
-  </div>
+  <button class="status-button" disabled>Monitoreo activo ✅</button>
 
   <div class="container">
-    <div class="sensor-box"><h2>Temp Sensor 1</h2><p id="sensor1">--</p></div>
-    <div class="sensor-box"><h2>Humedad Sensor 1</h2><p id="sensor1_humidity">--</p></div>
+    <div class="card"><div class="title">Temp Sensor 1</div><div class="value" id="sensor1">--</div></div>
+    <div class="card"><div class="title">Humedad Sensor 1</div><div class="value" id="sensor1_humidity">--</div></div>
 
-    <div class="sensor-box"><h2>Temp Sensor 2</h2><p id="sensor2">--</p></div>
-    <div class="sensor-box"><h2>Humedad Sensor 2</h2><p id="sensor2_humidity">--</p></div>
+    <div class="card"><div class="title">Temp Sensor 2</div><div class="value" id="sensor2">--</div></div>
+    <div class="card"><div class="title">Humedad Sensor 2</div><div class="value" id="sensor2_humidity">--</div></div>
 
-    <div class="sensor-box"><h2>Temp Multi</h2><p id="multi1_temp">--</p></div>
-    <div class="sensor-box"><h2>CO₂</h2><p id="multi1_co2">--</p></div>
-    <div class="sensor-box"><h2>PM2.5</h2><p id="multi1_pm25">--</p></div>
-    <div class="sensor-box"><h2>Ruido</h2><p id="multi1_noise">--</p></div>
+    <div class="card"><div class="title">Temp Multi</div><div class="value" id="multi1_temp">--</div></div>
+    <div class="card"><div class="title">CO₂</div><div class="value" id="multi1_co2">--</div></div>
+    <div class="card"><div class="title">PM2.5</div><div class="value" id="multi1_pm25">--</div></div>
+    <div class="card"><div class="title">Ruido</div><div class="value" id="multi1_noise">--</div></div>
 
-    <div class="sensor-box"><h2>Puerta</h2><p id="puerta1">--</p></div>
-
-    <div class="sensor-box"><h2>Watt AC</h2><p id="power1">--</p></div>
-    <div class="sensor-box"><h2>Watt Humid.</h2><p id="power2">--</p></div>
-
-    <div class="sensor-box"><h2>Factor Potencia AC</h2><p id="powerFactor1">--</p></div>
-    <div class="sensor-box"><h2>Factor Potencia Humid.</h2><p id="powerFactor2">--</p></div>
-
-    <div class="sensor-box"><h2>Potencia Aparente AC</h2><p id="apparentPower1">--</p></div>
-    <div class="sensor-box"><h2>Potencia Aparente Humid.</h2><p id="apparentPower2">--</p></div>
-
-    <div class="sensor-box"><h2>Voltaje AC</h2><p id="voltage1">--</p></div>
-    <div class="sensor-box"><h2>Voltaje Humid.</h2><p id="voltage2">--</p></div>
-
-    <div class="sensor-box"><h2>Corriente AC</h2><p id="current1">--</p></div>
-    <div class="sensor-box"><h2>Corriente Humid.</h2><p id="current2">--</p></div>
-
-    <div class="sensor-box"><h2>Frecuencia AC</h2><p id="frequency1">--</p></div>
-    <div class="sensor-box"><h2>Frecuencia Humid.</h2><p id="frequency2">--</p></div>
+    <div class="card"><div class="title">Puerta</div><div class="value" id="puerta1">--</div></div>
   </div>
 
-  <button id="panelButton" onclick="window.location.href='/mt40'">Panel MT40</button>
+  <button class="panel-button" onclick="window.location.href='/mt40'">Panel MT40</button>
 
   <script>
     function actualizarCuadro(id, valor) {
-      const elemento = document.getElementById(id);
-      if (elemento) {
-        elemento.textContent = valor ?? '--';
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = valor ?? '--';
       }
     }
 
@@ -117,16 +95,16 @@
       try {
         const res = await fetch('/sensor-data');
         const datos = await res.json();
-        for (const key in datos) {
-          actualizarCuadro(key, datos[key]);
+        for (const clave in datos) {
+          actualizarCuadro(clave, datos[clave]);
         }
-      } catch (err) {
-        console.error("Error:", err);
+      } catch (error) {
+        console.error("Error obteniendo datos:", error);
       }
     }
 
-    setInterval(() => obtenerDatos(), 10000);
-    obtenerDatos(); // Primera llamada inmediata
+    obtenerDatos();
+    setInterval(obtenerDatos, 10000);
   </script>
 </body>
 </html>
