@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoreo de Granja Tenebrio</title>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2rem;
+        }
+        .status-bar {
+            margin-top: 20px;
+        }
+        .status-button {
+            background-color: #22c55e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: not-allowed;
+        }
+        .dashboard-container {
+            position: relative;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .sensor-image {
+            width: 900px;
+            max-width: 100%;
+            height: auto;
+        }
+        .sensor-box {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            width: 100px;
+        }
+        .blue { background-color: #1d4ed8; }
+        .green { background-color: #22c55e; }
+        .yellow { background-color: #eab308; }
+        .red { background-color: #dc2626; }
+        .purple { background-color: #8b5cf6; }
+        .teal { background-color: #0d9488; }
+
+        .button-panel {
+            margin-top: 10px;
+        }
+        .panel-button {
+            background-color: #2563eb;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>📡 Monitoreo de Granja Tenebrio</h1>
+
+    <div class="status-bar">
+        <button class="status-button" disabled>✅ Monitoreo activo</button>
+        <div class="button-panel">
+            <a href="/panel-mt40" class="panel-button">Ir al panel MT40 ⚡</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <img src="/static/Granja.png" alt="Granja" class="sensor-image">
+
+        <!-- Cuadros de sensores (coordenadas aproximadas) -->
+        <div id="temp1" class="sensor-box blue" style="top: 60px; left: 100px;">--</div>
+        <div id="hum1" class="sensor-box green" style="top: 140px; left: 100px;">--</div>
+
+        <div id="temp2" class="sensor-box blue" style="top: 240px; left: 100px;">--</div>
+        <div id="hum2" class="sensor-box green" style="top: 320px; left: 100px;">--</div>
+
+        <div id="puerta" class="sensor-box red" style="top: 400px; left: 180px;">--</div>
+
+        <div id="temp3" class="sensor-box green" style="top: 80px; left: 700px;">--</div>
+        <div id="co2" class="sensor-box yellow" style="top: 140px; left: 700px;">--</div>
+        <div id="pm25" class="sensor-box green" style="top: 200px; left: 700px;">--</div>
+        <div id="noise" class="sensor-box yellow" style="top: 260px; left: 700px;">--</div>
+
+        <div id="watts1" class="sensor-box purple" style="top: 320px; left: 700px;">--</div>
+        <div id="watts2" class="sensor-box purple" style="top: 380px; left: 700px;">--</div>
+    </div>
+
+    <script>
+        async function fetchData() {
+            try {
+                const response = await fetch('/sensor-data');
+                const data = await response.json();
+
+                document.getElementById('temp1').innerText = data.sensor1 + '°C';
+                document.getElementById('hum1').innerText = data.sensor1_humidity + ' %';
+                document.getElementById('temp2').innerText = data.sensor2 + '°C';
+                document.getElementById('hum2').innerText = data.sensor2_humidity + ' %';
+                document.getElementById('puerta').innerText = data.puerta1.charAt(0).toUpperCase() + data.puerta1.slice(1);
+                document.getElementById('temp3').innerText = data.multi1_temp + '°C';
+                document.getElementById('co2').innerText = data.multi1_co2 + ' ppm';
+                document.getElementById('pm25').innerText = data.multi1_pm25 + ' µg/m³';
+                document.getElementById('noise').innerText = data.multi1_noise + ' dB';
+                document.getElementById('watts1').innerText = data.power1 + ' W';
+                document.getElementById('watts2').innerText = data.power2 + ' W';
+            } catch (error) {
+                console.error('Error al obtener datos:', error);
+            }
+        }
+
+        setInterval(fetchData, 5000);
+        fetchData();
+    </script>
+</body>
+</html>
