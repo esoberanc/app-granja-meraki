@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monitoreo de Granja</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen text-center">
+
+  <h1 class="text-2xl font-bold mt-6 mb-2">📡 Monitoreo de Granja Tenebrio</h1>
+
+  <!-- Botón de consumo eléctrico -->
+  <a href="/mt40" class="mb-4 px-6 py-2 bg-blue-700 text-white font-bold rounded-lg shadow hover:bg-blue-800 transition duration-200">⚡ Consumo eléctrico</a>
+
+  <p class="mb-4 px-4 py-2 bg-green-600 text-white font-semibold rounded shadow">✔️ Monitoreo activo</p>
+
+  <div id="estado-general" class="mb-4 text-lg font-semibold text-center"></div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 px-4 mb-8 max-w-6xl w-full">
+
+    <!-- Aquí irían los cuadros de los sensores, omitidos por brevedad -->
+    <div id="sensor1" class="rounded-lg shadow p-4 bg-white">Sensor1</div>
+    <div id="sensor2" class="rounded-lg shadow p-4 bg-white">Sensor2</div>
+    <div id="multi1_temp" class="rounded-lg shadow p-4 bg-white">Temp MT15</div>
+    <div id="multi1_co2" class="rounded-lg shadow p-4 bg-white">CO2</div>
+    <div id="multi1_pm25" class="rounded-lg shadow p-4 bg-white">PM2.5</div>
+    <div id="multi1_noise" class="rounded-lg shadow p-4 bg-white">Ruido</div>
+    <div id="puerta1" class="rounded-lg shadow p-4 bg-white">Puerta</div>
+    <div id="sensor1_humidity" class="rounded-lg shadow p-4 bg-white">Humedad S1</div>
+    <div id="sensor2_humidity" class="rounded-lg shadow p-4 bg-white">Humedad S2</div>
+    <div id="voltage1" class="rounded-lg shadow p-4 bg-white">Voltaje AC</div>
+    <div id="voltage2" class="rounded-lg shadow p-4 bg-white">Voltaje Humid.</div>
+    <!-- Más cuadros... -->
+
+  </div>
+
+</body>
+</html>
