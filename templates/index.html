@@ -3,163 +3,97 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Monitoreo Meraki</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Panel Granja Meraki</title>
   <style>
-    #granja-container {
-      position: relative;
-      width: 621px;
-      height: 409px;
+    body {
+      font-family: Arial, sans-serif;
+      background: url("static/Granja.png") no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
     }
-    #granja-img {
-      width: 100%;
-      height: auto;
-    }
-    .cuadro {
-      position: absolute;
-      width: 60px;
-      height: 68px;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 12px;
+
+    .boton-mt40 {
+      background-color: #007bff;
       color: white;
-      text-align: center;
-      padding: 5px;
-      white-space: pre-line;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      margin: 20px;
+      cursor: pointer;
     }
-    #cuadro-9 { top: 147px; left: 25px; } /* Watts 1 */
-    #cuadro-10 { top: 130px; left: 450px; } /* Watts 2 */
-    #cuadro-11 { top: 145px; left: 225px; } /* Hum 1 */
-    #cuadro-12 { top: 320px; left: 225px; } /* Hum 2 */
-    #cuadro-13 { top: 310px; left: 515px; } /* Temp 3 */
-    #cuadro-1 { top: 70px; left: 225px; } /* Temp 1 */
-    #cuadro-2 { top: 245px; left: 225px; } /* Temp 2 */
-    #cuadro-4 { top: 230px; left: 515px; } /* CO2 */
-    #cuadro-5 { top: 310px; left: 435px; } /* Noise */
-    #cuadro-6 { top: 230px; left: 435px; } /* PM2.5 */
-    #cuadro-8 { top: 378px; left: 284px; } /* Door */
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      padding: 20px;
+    }
+
+    .sensor-box {
+      background-color: rgba(0, 0, 0, 0.65);
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 1.1em;
+      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+    }
+
+    .status-bar {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      padding: 10px 18px;
+      background-color: #28a745;
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      border: none;
+      pointer-events: none;
+    }
   </style>
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen text-center">
+<body>
+  <button class="boton-mt40" onclick="window.location.href='/mt40'">Panel MT40</button>
 
-  <h1 class="text-2xl font-bold mt-6 mb-4">📡 Monitoreo de Granja Tenebrio</h1>
-
-  <p class="mb-4 px-4 py-2 bg-green-600 text-white font-semibold rounded shadow">✔️ Monitoreo activo</p>
-
-  <div id="estado-general" class="mb-4 text-lg font-semibold text-center"></div>
-
-  <div id="granja-container">
-    <img id="granja-img" src="/static/Granja.png" alt="Granja" />
-    <div id="cuadro-1" class="cuadro">--</div>
-    <div id="cuadro-2" class="cuadro">--</div>
-    <div id="cuadro-4" class="cuadro">--</div>
-    <div id="cuadro-5" class="cuadro">--</div>
-    <div id="cuadro-6" class="cuadro">--</div>
-    <div id="cuadro-8" class="cuadro">--</div>
-    <div id="cuadro-9" class="cuadro">--</div>
-    <div id="cuadro-10" class="cuadro">--</div>
-    <div id="cuadro-11" class="cuadro">--</div>
-    <div id="cuadro-12" class="cuadro">--</div>
-    <div id="cuadro-13" class="cuadro">--</div>
+  <div class="grid-container">
+    <div class="sensor-box" id="sensor1">Temp Sensor 1: -- °C</div>
+    <div class="sensor-box" id="sensor1_humidity">Hum Sensor 1: -- %</div>
+    <div class="sensor-box" id="sensor2">Temp Sensor 2: -- °C</div>
+    <div class="sensor-box" id="sensor2_humidity">Hum Sensor 2: -- %</div>
+    <div class="sensor-box" id="multi1_temp">Temp MT15: -- °C</div>
+    <div class="sensor-box" id="multi1_co2">CO2 MT15: -- ppm</div>
+    <div class="sensor-box" id="multi1_pm25">PM2.5 MT15: -- µg/m³</div>
+    <div class="sensor-box" id="multi1_noise">Ruido MT15: -- dBA</div>
+    <div class="sensor-box" id="puerta1">Puerta: --</div>
   </div>
 
+  <button class="status-bar" disabled>Monitoreo activo ✅</button>
+
   <script>
-    async function getSensorData() {
+    async function actualizarDatos() {
       try {
-        const response = await fetch("/sensor-data?guardar=true");
-        const data = await response.json();
+        const respuesta = await fetch("/sensor-data");
+        const datos = await respuesta.json();
 
-        const actualizar = (id, texto, color) => {
-          const el = document.getElementById(id);
-          el.textContent = texto;
-          el.style.backgroundColor = color;
-        };
-
-        const green = "#15803d";
-        const yellow = "#ca8a04";
-        const red = "#b91c1c";
-        const blue = "#0e7490";
-
-        if (data.sensor1 !== undefined)
-          actualizar("cuadro-1", `${data.sensor1.toFixed(1)}°C`, data.sensor1 < 22 || data.sensor1 > 30 ? red : (data.sensor1 < 24 || data.sensor1 > 28 ? yellow : green));
-
-        if (data.sensor2 !== undefined)
-          actualizar("cuadro-2", `${data.sensor2.toFixed(1)}°C`, data.sensor2 < 22 || data.sensor2 > 30 ? red : (data.sensor2 < 24 || data.sensor2 > 28 ? yellow : green));
-
-        if (data.multi1_co2 !== undefined) {
-          const ppm = data.multi1_co2;
-          const color = ppm <= 600 ? green : ppm <= 800 ? yellow : red;
-          actualizar("cuadro-4", `${ppm} ppm`, color);
-        }
-
-        if (data.multi1_noise !== undefined) {
-          const n = data.multi1_noise;
-          let texto = "Noisy", color = red, icon = "🔊";
-          if (n <= 40) [texto, color, icon] = ["Quiet", green, "🔈"];
-          else if (n <= 65) [texto, color, icon] = ["Moderate", yellow, "🔉"];
-          actualizar("cuadro-5", `${icon}
-${texto}
-${n} dB`, color);
-        }
-
-        if (data.multi1_pm25 !== undefined) {
-          const p = data.multi1_pm25;
-          let texto = "Poor", color = red;
-          if (p <= 40) [texto, color] = ["Good", green];
-          else if (p <= 70) [texto, color] = ["Moderate", yellow];
-          actualizar("cuadro-6", `
-${texto}
-${p} µg/m³`, color);
-        }
-
-        if (data.puerta1 !== undefined) {
-          const estado = data.puerta1 === "open" ? "Opened" : "Closed";
-          const color = data.puerta1 === "open" ? red : green;
-          actualizar("cuadro-8", estado, color);
-        }
-
-        if (data.power1 !== undefined)
-          actualizar("cuadro-9", `⚡
-${data.power1.toFixed(1)} W`, blue);
-
-        if (data.sensor1_humidity !== undefined) {
-          const h = data.sensor1_humidity;
-          const color = h >= 60 && h <= 70 ? green : (h >= 50 && h <= 75 ? yellow : red);
-          actualizar("cuadro-11", `${h}%`, color);
-        }
-
-        if (data.sensor2_humidity !== undefined) {
-          const h = data.sensor2_humidity;
-          const color = h >= 60 && h <= 70 ? green : (h >= 50 && h <= 75 ? yellow : red);
-          actualizar("cuadro-12", `${h}%`, color);
-        }
-
-        if (data.multi1_temp !== undefined) {
-          const t = data.multi1_temp;
-          const color = t < 22 || t > 30 ? red : (t < 24 || t > 28 ? yellow : green);
-          actualizar("cuadro-13", `${t.toFixed(1)}°C`, color);
-        }
-
-        if (data.power2 !== undefined)
-          actualizar("cuadro-10", `⚡
-${data.power2.toFixed(1)} W`, blue);
-
-        // Estado general
-        const estadoGeneral = document.getElementById("estado-general");
-        estadoGeneral.textContent = "✅ Ambiente óptimo";
-        estadoGeneral.style.color = "#15803d";
-
+        document.getElementById("sensor1").textContent = `Temp Sensor 1: ${datos.sensor1?.toFixed(1) ?? "--"} °C`;
+        document.getElementById("sensor1_humidity").textContent = `Hum Sensor 1: ${datos.sensor1_humidity ?? "--"} %`;
+        document.getElementById("sensor2").textContent = `Temp Sensor 2: ${datos.sensor2?.toFixed(1) ?? "--"} °C`;
+        document.getElementById("sensor2_humidity").textContent = `Hum Sensor 2: ${datos.sensor2_humidity ?? "--"} %`;
+        document.getElementById("multi1_temp").textContent = `Temp MT15: ${datos.multi1_temp?.toFixed(1) ?? "--"} °C`;
+        document.getElementById("multi1_co2").textContent = `CO2 MT15: ${datos.multi1_co2 ?? "--"} ppm`;
+        document.getElementById("multi1_pm25").textContent = `PM2.5 MT15: ${datos.multi1_pm25 ?? "--"} µg/m³`;
+        document.getElementById("multi1_noise").textContent = `Ruido MT15: ${datos.multi1_noise ?? "--"} dBA`;
+        document.getElementById("puerta1").textContent = `Puerta: ${datos.puerta1 === "closed" ? "Cerrada" : "Abierta"}`;
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error al obtener datos:", error);
       }
     }
 
-    setInterval(getSensorData, 10000);
-    window.onload = getSensorData;
+    setInterval(actualizarDatos, 5000);
+    actualizarDatos();
   </script>
 </body>
 </html>
