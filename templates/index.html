@@ -1,107 +1,109 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Monitoreo de Granja Tenebrio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Granja de Tenebrio</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f5f6fa;
             margin: 0;
-            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url("/static/Granja.png");
+            background-size: cover;
+            background-position: center;
+            color: #fff;
         }
-        h1 {
-            margin-top: 30px;
+        .contenedor {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 40px 10px 10px 10px;
         }
-        .status {
-            margin: 20px;
-        }
-        .status button {
-            background-color: #2ecc71;
-            border: none;
-            color: white;
-            padding: 15px 25px;
+        .cuadro {
+            width: 250px;
+            height: 90px;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             font-size: 18px;
-            border-radius: 8px;
-            cursor: not-allowed;
-        }
-        .sensor-container {
-            position: relative;
-            width: 900px;
-            margin: 0 auto;
-        }
-        .sensor-image {
-            width: 100%;
-            border-radius: 10px;
-        }
-        .sensor-box {
-            position: absolute;
-            background-color: #2c3e50;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 10px;
             font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease-in-out;
         }
-        .green { background-color: #27ae60; }
-        .blue { background-color: #2980b9; }
-        .red { background-color: #e74c3c; }
+        .cuadro:hover {
+            transform: scale(1.05);
+        }
+        .verde { background-color: rgba(0, 128, 0, 0.8); }
+        .azul { background-color: rgba(0, 102, 204, 0.8); }
+        .naranja { background-color: rgba(255, 140, 0, 0.8); }
+        .rojo { background-color: rgba(204, 0, 0, 0.8); }
+        .gris { background-color: rgba(64, 64, 64, 0.8); }
+        .amarillo { background-color: rgba(255, 204, 0, 0.8); }
+        .botones {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .boton {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: default;
+            color: white;
+            background-color: green;
+        }
     </style>
 </head>
 <body>
-    <h1>📡 Monitoreo de Granja Tenebrio</h1>
-    <div class="status">
-        <button disabled>✅ Monitoreo activo</button>
+    <div class="botones">
+        <button class="boton" disabled>Monitoreo activo ✅</button>
     </div>
-    <div class="sensor-container">
-        <img src="static/Granja.png" alt="Granja" class="sensor-image">
-        <div id="sensor1_temp" class="sensor-box" style="top: 90px; left: 60px;">--</div>
-        <div id="sensor1_humidity" class="sensor-box" style="top: 140px; left: 60px;">--</div>
-        <div id="sensor2_temp" class="sensor-box" style="top: 270px; left: 60px;">--</div>
-        <div id="sensor2_humidity" class="sensor-box" style="top: 320px; left: 60px;">--</div>
-        <div id="multi1_temp" class="sensor-box" style="top: 90px; left: 400px;">--</div>
-        <div id="multi1_co2" class="sensor-box red" style="top: 140px; left: 400px;">--</div>
-        <div id="multi1_pm25" class="sensor-box" style="top: 270px; left: 400px;">--</div>
-        <div id="multi1_noise" class="sensor-box" style="top: 320px; left: 400px;">--</div>
-        <div id="puerta1" class="sensor-box" style="top: 420px; left: 240px;">--</div>
-        <div id="power1" class="sensor-box blue" style="top: 90px; left: 700px;">--</div>
-        <div id="power2" class="sensor-box blue" style="top: 140px; left: 700px;">--</div>
+    <div class="contenedor" id="dashboard">
+        <!-- Cuadros de sensores -->
+        <div class="cuadro azul" id="sensor1">Sensor 1 Temp</div>
+        <div class="cuadro azul" id="sensor1_humidity">Sensor 1 Humedad</div>
+        <div class="cuadro azul" id="sensor2">Sensor 2 Temp</div>
+        <div class="cuadro azul" id="sensor2_humidity">Sensor 2 Humedad</div>
+        <div class="cuadro verde" id="multi1_temp">MT15 Temp</div>
+        <div class="cuadro verde" id="multi1_co2">MT15 CO2</div>
+        <div class="cuadro verde" id="multi1_pm25">MT15 PM2.5</div>
+        <div class="cuadro verde" id="multi1_noise">MT15 Ruido</div>
+        <div class="cuadro amarillo" id="puerta1">Puerta</div>
+        <div class="cuadro rojo" id="power1">AC Watts</div>
+        <div class="cuadro rojo" id="power2">Humidificador Watts</div>
+        <div class="cuadro gris" id="powerFactor1">AC PF</div>
+        <div class="cuadro gris" id="powerFactor2">Humidificador PF</div>
+        <div class="cuadro gris" id="voltage1">AC Voltaje</div>
+        <div class="cuadro gris" id="voltage2">Humidificador Voltaje</div>
+        <div class="cuadro gris" id="current1">AC Corriente</div>
+        <div class="cuadro gris" id="current2">Humidificador Corriente</div>
+        <div class="cuadro gris" id="frequency1">AC Frecuencia</div>
+        <div class="cuadro gris" id="frequency2">Humidificador Frecuencia</div>
+        <div class="cuadro gris" id="apparentPower1">AC Pot. Aparente</div>
+        <div class="cuadro gris" id="apparentPower2">Humidificador Pot. Aparente</div>
     </div>
 
     <script>
-        async function getSensorData() {
+        async function actualizarDashboard() {
             try {
-                const res = await fetch('/sensor-data');
+                const res = await fetch("/sensor-data");
                 const data = await res.json();
-                if (data.error) return;
-
-                const fields = {
-                    sensor1_temp: data.sensor1 + "°C",
-                    sensor1_humidity: data.sensor1_humidity + "%",
-                    sensor2_temp: data.sensor2 + "°C",
-                    sensor2_humidity: data.sensor2_humidity + "%",
-                    multi1_temp: data.multi1_temp + "°C",
-                    multi1_co2: data.multi1_co2 + " ppm",
-                    multi1_pm25: data.multi1_pm25 + " µg/m³",
-                    multi1_noise: data.multi1_noise + " dB",
-                    puerta1: "Puerta: " + data.puerta1,
-                    power1: data.power1 + " W",
-                    power2: data.power2 + " W"
-                };
-
-                for (let id in fields) {
-                    if (document.getElementById(id)) {
-                        document.getElementById(id).textContent = fields[id];
-                    }
+                for (const key in data) {
+                    const el = document.getElementById(key);
+                    if (el) el.textContent = `${key}: ${data[key]}`;
                 }
             } catch (e) {
-                console.error("Error obteniendo datos:", e);
+                console.error("Error actualizando dashboard:", e);
             }
         }
-
-        setInterval(getSensorData, 5000);
-        getSensorData();
+        setInterval(actualizarDashboard, 10000);
+        actualizarDashboard();
     </script>
 </body>
 </html>
