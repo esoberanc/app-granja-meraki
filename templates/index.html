@@ -1,96 +1,104 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Granja Inteligente - Monitoreo</title>
-    <style>
-        body {
-            background-image: url("/static/Granja.png");
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            font-family: Arial, sans-serif;
-        }
-        .cuadro {
-            position: absolute;
-            width: 120px;
-            height: 60px;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            padding-top: 18px;
-            border-radius: 10px;
-        }
-        #cuadro-1 { top: 80px; left: 208px; }
-        #cuadro-2 { top: 255px; left: 208px; }
-        #cuadro-4 { top: 60px; left: 515px; }
-        #cuadro-5 { top: 155px; left: 475px; }
-        #cuadro-8 { top: 378px; left: 290px; }
-        #cuadro-9 { top: 350px; left: 520px; }
-        #cuadro-10 { top: 180px; left: 200px; }
-        #cuadro-11 { top: 350px; left: 200px; }
-        #cuadro-12 { top: 140px; left: 700px; }
-        #cuadro-13 { top: 220px; left: 700px; }
+  <meta charset="UTF-8">
+  <title>Monitoreo de Granja Tenebrio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+    .status-button {
+      background-color: #22c55e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 1em;
+      cursor: not-allowed;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .image-container {
+      position: relative;
+      display: inline-block;
+    }
+    .sensor-box {
+      position: absolute;
+      padding: 10px 15px;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      font-size: 1em;
+      min-width: 80px;
+      text-align: center;
+    }
+    .blue { background-color: #1E90FF; }
+    .green { background-color: #10B981; }
+    .red { background-color: #EF4444; }
+    .yellow { background-color: #FBBF24; color: black; }
+    .teal { background-color: #0ea5e9; }
+    .purple { background-color: #8b5cf6; }
 
-        #boton-monitoreo {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: default;
-            font-weight: bold;
-        }
-    </style>
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
 </head>
 <body>
-    <button id="boton-monitoreo" disabled>Monitoreo activo ✅</button>
-    <div id="cuadro-1" class="cuadro">--</div>
-    <div id="cuadro-2" class="cuadro">--</div>
-    <div id="cuadro-4" class="cuadro">--</div>
-    <div id="cuadro-5" class="cuadro">--</div>
-    <div id="cuadro-8" class="cuadro">--</div>
-    <div id="cuadro-9" class="cuadro">--</div>
-    <div id="cuadro-10" class="cuadro">--</div>
-    <div id="cuadro-11" class="cuadro">--</div>
-    <div id="cuadro-12" class="cuadro">--</div>
-    <div id="cuadro-13" class="cuadro">--</div>
+  <h1>📡 Monitoreo de Granja Tenebrio</h1>
+  <button class="status-button" disabled>
+    Monitoreo activo ✅
+  </button>
+  <div class="image-container">
+    <img src="static/Granja.png" alt="Granja">
+    <!-- Cuadros de sensores (ejemplos, ajustar según sea necesario) -->
+    <div class="sensor-box blue" style="top: 100px; left: 100px;" id="sensor1_temp">--</div>
+    <div class="sensor-box green" style="top: 180px; left: 100px;" id="sensor1_humidity">--</div>
+    <div class="sensor-box blue" style="top: 260px; left: 100px;" id="sensor2_temp">--</div>
+    <div class="sensor-box green" style="top: 340px; left: 100px;" id="sensor2_humidity">--</div>
+    <div class="sensor-box green" style="top: 100px; right: 100px;" id="multi1_co2">--</div>
+    <div class="sensor-box yellow" style="top: 180px; right: 100px;" id="multi1_pm25">--</div>
+    <div class="sensor-box teal" style="top: 260px; right: 100px;" id="multi1_noise">--</div>
+    <div class="sensor-box blue" style="top: 340px; right: 100px;" id="multi1_temp">--</div>
+    <div class="sensor-box purple" style="top: 420px; right: 100px;" id="power1">--</div>
+    <div class="sensor-box purple" style="top: 500px; right: 100px;" id="power2">--</div>
+    <div class="sensor-box red" style="bottom: 50px; left: 250px;" id="puerta1">--</div>
+  </div>
 
-    <script>
-        async function obtenerDatos() {
-            try {
-                const response = await fetch('/sensor-data');
-                const data = await response.json();
-
-                const actualizarCuadro = (id, valor, color) => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.innerText = valor;
-                        el.style.backgroundColor = color;
-                    }
-                };
-
-                actualizarCuadro('cuadro-1', data.sensor1 + '°C', '#007bff');
-                actualizarCuadro('cuadro-2', data.sensor2 + '°C', '#007bff');
-                actualizarCuadro('cuadro-4', data.multi1_co2 + ' ppm', '#28a745');
-                actualizarCuadro('cuadro-5', data.multi1_noise + ' dB', '#17a2b8');
-                actualizarCuadro('cuadro-8', data.puerta1 === 'closed' ? 'Cerrada' : 'Abierta', data.puerta1 === 'closed' ? 'green' : 'red');
-                actualizarCuadro('cuadro-9', data.multi1_pm25 + ' µg/m³', '#ffc107');
-                actualizarCuadro('cuadro-10', data.sensor1_humidity + ' %', '#20c997');
-                actualizarCuadro('cuadro-11', data.sensor2_humidity + ' %', '#20c997');
-                actualizarCuadro('cuadro-12', data.power1 + ' W', '#6f42c1');
-                actualizarCuadro('cuadro-13', data.power2 + ' W', '#6f42c1');
-            } catch (error) {
-                console.error("Error:", error);
-            }
-        }
-
-        setInterval(obtenerDatos, 10000);
-        obtenerDatos();
-    </script>
+  <script>
+    async function getSensorData() {
+      try {
+        const response = await fetch("/sensor-data");
+        const data = await response.json();
+        document.getElementById("sensor1_temp").textContent = data.sensor1 + "°C";
+        document.getElementById("sensor2_temp").textContent = data.sensor2 + "°C";
+        document.getElementById("sensor1_humidity").textContent = data.sensor1_humidity + " %";
+        document.getElementById("sensor2_humidity").textContent = data.sensor2_humidity + " %";
+        document.getElementById("multi1_temp").textContent = data.multi1_temp + "°C";
+        document.getElementById("multi1_co2").textContent = data.multi1_co2 + " ppm";
+        document.getElementById("multi1_pm25").textContent = data.multi1_pm25 + " µg/m³";
+        document.getElementById("multi1_noise").textContent = data.multi1_noise + " dB";
+        document.getElementById("puerta1").textContent = data.puerta1.charAt(0).toUpperCase() + data.puerta1.slice(1);
+        document.getElementById("power1").textContent = data.power1 + " W";
+        document.getElementById("power2").textContent = data.power2 + " W";
+      } catch (error) {
+        console.error("Error al obtener datos de sensores:", error);
+      }
+    }
+    setInterval(getSensorData, 5000);
+    getSensorData();
+  </script>
 </body>
 </html>
