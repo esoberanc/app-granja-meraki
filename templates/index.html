@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Granja Inteligente - Monitoreo</title>
+    <style>
+        body {
+            background-image: url("/static/Granja.png");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            font-family: Arial, sans-serif;
+        }
+        .cuadro {
+            position: absolute;
+            width: 120px;
+            height: 60px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding-top: 18px;
+            border-radius: 10px;
+        }
+        #cuadro-1 { top: 80px; left: 208px; }
+        #cuadro-2 { top: 255px; left: 208px; }
+        #cuadro-4 { top: 60px; left: 515px; }
+        #cuadro-5 { top: 155px; left: 475px; }
+        #cuadro-8 { top: 378px; left: 290px; }
+        #cuadro-9 { top: 350px; left: 520px; }
+        #cuadro-10 { top: 180px; left: 200px; }
+        #cuadro-11 { top: 350px; left: 200px; }
+        #cuadro-12 { top: 140px; left: 700px; }
+        #cuadro-13 { top: 220px; left: 700px; }
+
+        #boton-monitoreo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: default;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <button id="boton-monitoreo" disabled>Monitoreo activo ✅</button>
+    <div id="cuadro-1" class="cuadro">--</div>
+    <div id="cuadro-2" class="cuadro">--</div>
+    <div id="cuadro-4" class="cuadro">--</div>
+    <div id="cuadro-5" class="cuadro">--</div>
+    <div id="cuadro-8" class="cuadro">--</div>
+    <div id="cuadro-9" class="cuadro">--</div>
+    <div id="cuadro-10" class="cuadro">--</div>
+    <div id="cuadro-11" class="cuadro">--</div>
+    <div id="cuadro-12" class="cuadro">--</div>
+    <div id="cuadro-13" class="cuadro">--</div>
+
+    <script>
+        async function obtenerDatos() {
+            try {
+                const response = await fetch('/sensor-data');
+                const data = await response.json();
+
+                const actualizarCuadro = (id, valor, color) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.innerText = valor;
+                        el.style.backgroundColor = color;
+                    }
+                };
+
+                actualizarCuadro('cuadro-1', data.sensor1 + '°C', '#007bff');
+                actualizarCuadro('cuadro-2', data.sensor2 + '°C', '#007bff');
+                actualizarCuadro('cuadro-4', data.multi1_co2 + ' ppm', '#28a745');
+                actualizarCuadro('cuadro-5', data.multi1_noise + ' dB', '#17a2b8');
+                actualizarCuadro('cuadro-8', data.puerta1 === 'closed' ? 'Cerrada' : 'Abierta', data.puerta1 === 'closed' ? 'green' : 'red');
+                actualizarCuadro('cuadro-9', data.multi1_pm25 + ' µg/m³', '#ffc107');
+                actualizarCuadro('cuadro-10', data.sensor1_humidity + ' %', '#20c997');
+                actualizarCuadro('cuadro-11', data.sensor2_humidity + ' %', '#20c997');
+                actualizarCuadro('cuadro-12', data.power1 + ' W', '#6f42c1');
+                actualizarCuadro('cuadro-13', data.power2 + ' W', '#6f42c1');
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        setInterval(obtenerDatos, 10000);
+        obtenerDatos();
+    </script>
+</body>
+</html>
