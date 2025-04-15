@@ -1,11 +1,8 @@
-
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import requests
 from datetime import datetime
 import os
-import threading
-import time
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
@@ -34,132 +31,143 @@ def home():
 def mt40_panel():
     return render_template("panel-mt40.html")
 
-@app.route("/sensor-data")
-def sensor_data():
+def guardar_en_sheets(sensor_data):
     try:
-        headers = {
-            "Authorization": f"Bearer {MERAKI_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        url = f"https://api.meraki.com/api/v1/organizations/{ORGANIZATION_ID}/sensor/readings/latest"
-        response = requests.get(url, headers=headers)
-        if response.status_code != 200:
-            raise Exception("Error consultando Meraki")
-
-        readings = response.json()
-
-        data = {}
-        for r in readings:
-            serial = r["serial"]
-            for item in r.get("readings", []):
-                metric = item["metric"]
-                value = list(item.values())[1]
-                if serial == SENSORS["sensor1"]:
-                    if metric == "temperature":
-                        data["sensor1"] = value["value"]
-                    elif metric == "humidity":
-                        data["sensor1_humidity"] = value["value"]
-                elif serial == SENSORS["sensor2"]:
-                    if metric == "temperature":
-                        data["sensor2"] = value["value"]
-                    elif metric == "humidity":
-                        data["sensor2_humidity"] = value["value"]
-                elif serial == SENSORS["multi1"]:
-                    if metric == "temperature":
-                        data["multi1_temp"] = value["value"]
-                    elif metric == "pm25":
-                        data["multi1_pm25"] = value["value"]
-                    elif metric == "noise":
-                        data["multi1_noise"] = value["value"]
-                    elif metric == "co2":
-                        data["multi1_co2"] = value["value"]
-                elif serial == SENSORS["puerta1"]:
-                    if metric == "door":
-                        data["puerta1"] = value["state"]
-                elif serial == SENSORS["power1"]:
-                    if metric == "realPower":
-                        data["power1"] = value["draw"]
-                    elif metric == "apparentPower":
-                        data["apparentPower1"] = value["draw"]
-                    elif metric == "voltage":
-                        data["voltage1"] = value["level"]
-                    elif metric == "current":
-                        data["current1"] = value["draw"]
-                    elif metric == "powerFactor":
-                        data["powerFactor1"] = value["percentage"]
-                    elif metric == "frequency":
-                        data["frequency1"] = value["level"]
-                elif serial == SENSORS["power2"]:
-                    if metric == "realPower":
-                        data["power2"] = value["draw"]
-                    elif metric == "apparentPower":
-                        data["apparentPower2"] = value["draw"]
-                    elif metric == "voltage":
-                        data["voltage2"] = value["level"]
-                    elif metric == "current":
-                        data["current2"] = value["draw"]
-                    elif metric == "powerFactor":
-                        data["powerFactor2"] = value["percentage"]
-                    elif metric == "frequency":
-                        data["frequency2"] = value["level"]
-
-        return jsonify(data)
-
-    except Exception as e:
-        print(f"❌ Error general: {e}")
-        return jsonify({"error": "Error al obtener datos"}), 500
-
-def guardar_en_google_sheets(data):
-    try:
-        credentials = service_account.Credentials.from_service_account_file(
+        creds = service_account.Credentials.from_service_account_file(
             "/etc/secrets/credentials.json",
-            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+            scopes=['https://www.googleapis.com/auth/spreadsheets']
         )
-        service = build("sheets", "v4", credentials=credentials)
+        service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
 
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         fila = [
-            now,
-            data.get("sensor1"), data.get("sensor2"),
-            data.get("sensor1_humidity"), data.get("sensor2_humidity"),
-            data.get("multi1_temp"), data.get("multi1_co2"),
-            data.get("multi1_pm25"), data.get("multi1_noise"),
-            data.get("puerta1"),
-            data.get("power1"), data.get("power2"),
-            data.get("apparentPower1"), data.get("apparentPower2"),
-            data.get("voltage1"), data.get("voltage2"),
-            data.get("current1"), data.get("current2"),
-            data.get("powerFactor1"), data.get("powerFactor2"),
-            data.get("frequency1"), data.get("frequency2")
+            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            sensor_data.get("sensor1"),
+            sensor_data.get("sensor2"),
+            sensor_data.get("sensor1_humidity"),
+            sensor_data.get("sensor2_humidity"),
+            sensor_data.get("multi1_temp"),
+            sensor_data.get("multi1_co2"),
+            sensor_data.get("multi1_pm25"),
+            sensor_data.get("multi1_noise"),
+            sensor_data.get("puerta1"),
+            sensor_data.get("power1"),
+            sensor_data.get("power2"),
+            sensor_data.get("powerFactor1"),
+            sensor_data.get("powerFactor2"),
+            sensor_data.get("apparentPower1"),
+            sensor_data.get("apparentPower2"),
+            sensor_data.get("voltage1"),
+            sensor_data.get("voltage2"),
+            sensor_data.get("current1"),
+            sensor_data.get("current2"),
+            sensor_data.get("frequency1"),
+            sensor_data.get("frequency2"),
         ]
-
+        body = {'values': [fila]}
         sheet.values().append(
             spreadsheetId=SPREADSHEET_ID,
-            range="Hoja1!A1",
-            valueInputOption="RAW",
-            body={"values": [fila]}
+            range='Hoja1!A1',
+            valueInputOption='RAW',
+            body=body
         ).execute()
+    except Exception as e:
+        print("❌ Error al guardar en Sheets:", e)
 
-        print("✅ Datos guardados automáticamente")
+@app.route("/sensor-data")
+def get_sensor_data():
+    url = f"https://api.meraki.com/api/v1/organizations/{ORGANIZATION_ID}/sensor/readings/latest"
+    headers = {
+        "X-Cisco-Meraki-API-Key": MERAKI_API_KEY,
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        result = {}
+
+        for sensor in data:
+            serial = sensor["serial"]
+            if serial not in SENSORS.values():
+                continue
+
+            for reading in sensor["readings"]:
+                metric = reading["metric"]
+
+                if metric == "temperature":
+                    temp = reading["temperature"]["celsius"]
+                    if serial == SENSORS["sensor1"]:
+                        result["sensor1"] = temp
+                    elif serial == SENSORS["sensor2"]:
+                        result["sensor2"] = temp
+                    elif serial == SENSORS["multi1"]:
+                        result["multi1_temp"] = temp
+
+                elif metric == "humidity":
+                    humedad = reading["humidity"]["relativePercentage"]
+                    if serial == SENSORS["sensor1"]:
+                        result["sensor1_humidity"] = humedad
+                    elif serial == SENSORS["sensor2"]:
+                        result["sensor2_humidity"] = humedad
+
+                elif metric == "door" and serial == SENSORS["puerta1"]:
+                    estado = reading["door"]["open"]
+                    result["puerta1"] = "open" if estado else "closed"
+
+                elif metric == "co2" and serial == SENSORS["multi1"]:
+                    result["multi1_co2"] = reading["co2"]["concentration"]
+
+                elif metric == "noise" and serial == SENSORS["multi1"]:
+                    result["multi1_noise"] = reading["noise"]["ambient"]["level"]
+
+                elif metric == "pm25" and serial == SENSORS["multi1"]:
+                    result["multi1_pm25"] = reading["pm25"]["concentration"]
+
+                elif metric == "powerFactor":
+                    if serial == SENSORS["power1"]:
+                        result["powerFactor1"] = reading["powerFactor"]["percentage"]
+                    elif serial == SENSORS["power2"]:
+                        result["powerFactor2"] = reading["powerFactor"]["percentage"]
+
+                elif metric == "apparentPower":
+                    if serial == SENSORS["power1"]:
+                        result["apparentPower1"] = reading["apparentPower"]["draw"]
+                    elif serial == SENSORS["power2"]:
+                        result["apparentPower2"] = reading["apparentPower"]["draw"]
+
+                elif metric == "voltage":
+                    if serial == SENSORS["power1"]:
+                        result["voltage1"] = reading["voltage"]["level"]
+                    elif serial == SENSORS["power2"]:
+                        result["voltage2"] = reading["voltage"]["level"]
+
+                elif metric == "current":
+                    if serial == SENSORS["power1"]:
+                        result["current1"] = reading["current"]["draw"]
+                    elif serial == SENSORS["power2"]:
+                        result["current2"] = reading["current"]["draw"]
+
+                elif metric == "frequency":
+                    if serial == SENSORS["power1"]:
+                        result["frequency1"] = reading["frequency"]["level"]
+                    elif serial == SENSORS["power2"]:
+                        result["frequency2"] = reading["frequency"]["level"]
+
+                elif metric == "realPower":
+                    draw = reading["realPower"]["draw"]
+                    if serial == SENSORS["power1"]:
+                        result["power1"] = draw
+                    elif serial == SENSORS["power2"]:
+                        result["power2"] = draw
+
+        guardar_en_sheets(result)
+        return jsonify(result)
 
     except Exception as e:
-        print(f"❌ Error guardando automáticamente: {e}")
-
-def monitor_loop():
-    while True:
-        try:
-            with app.test_request_context():
-                response = sensor_data()
-                if isinstance(response, tuple):
-                    print("❌ No se obtuvieron datos válidos")
-                else:
-                    guardar_en_google_sheets(response.get_json())
-        except Exception as e:
-            print(f"❌ Error en loop de monitoreo: {e}")
-        time.sleep(10)
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    threading.Thread(target=monitor_loop, daemon=True).start()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
