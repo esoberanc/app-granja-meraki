@@ -1,109 +1,143 @@
-import os
-import json
+from flask import Flask, jsonify, render_template, request
+from flask_cors import CORS
 import requests
-from flask import Flask, jsonify, render_template
-from threading import Thread
-import time
+import json
+import os
 from datetime import datetime
-import logging
+import threading
+import time
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
-# ==== CONFIGURACIÓN ====
 app = Flask(__name__)
+CORS(app)
+
+# === Configuración ===
 ORGANIZATION_ID = "1654515"
-SHEET_ID = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
 MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
-cred_path = "/etc/secrets/credentials.json"
+SHEET_ID = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
+CREDENTIALS_PATH = "/etc/secrets/credentials.json"  # Ruta en Render
 
-# ==== LOGGING ====
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+datos_sensores = {}  # Estado global con los datos actuales
 
-# ==== VARIABLE GLOBAL ====
-datos_sensores = {}
-
-# ==== FUNCIONES ====
-
+# === API Meraki ===
 def obtener_datos_sensores():
     url = f"https://api.meraki.com/api/v1/organizations/{ORGANIZATION_ID}/sensor/readings/latest"
     headers = {"X-Cisco-Meraki-API-Key": MERAKI_API_KEY}
     response = requests.get(url, headers=headers)
 
-    if response.status_code == 200:
-        return response.json()
-    else:
-        logger.error(f"❌ Error consultando Meraki: {response.status_code} - {response.text}")
-        return []
+    if response.status_code != 200:
+        print("❌ Error al obtener datos Meraki:", response.status_code)
+        return {}
 
-def extraer_metricas(data):
-    resultado = {
-        "timestamp": datetime.now().isoformat(),
-        "temp1": None, "hum1": None,
-        "temp2": None, "hum2": None,
-        "temp3": None, "co2": None,
-        "pm25": None, "noise": None,
-        "puerta": None,
-        "watts1": None, "watts2": None
+    data = response.json()
+    datos = {
+        "sensor1": None,
+        "sensor1_humidity": None,
+        "sensor2": None,
+        "sensor2_humidity": None,
+        "multi1_temp": None,
+        "multi1_co2": None,
+        "multi1_pm25": None,
+        "multi1_noise": None,
+        "puerta1": None,
+        "power1": None,
+        "power2": None
     }
 
-    for sensor in data:
-        sid = sensor.get("serial")
-        readings = sensor.get("readings", {})
+    for lectura in data:
+        serial = lectura["serial"]
+        for lectura_individual in lectura["readings"]:
+            tipo = lectura_individual["metric"]
+            valor = list(lectura_individual.values())[-1]
 
-        if sid == "Q3CA-AT85-YJMB":
-            resultado["temp1"] = readings.get("temperature")
-            resultado["hum1"] = readings.get("humidity")
-        elif sid == "Q3CA-5FF6-XF84":
-            resultado["temp2"] = readings.get("temperature")
-            resultado["hum2"] = readings.get("humidity")
-        elif sid == "Q3CQ-YVSZ-BHKR":
-            resultado["temp3"] = readings.get("temperature")
-            resultado["co2"] = readings.get("co2")
-            resultado["pm25"] = readings.get("pm25")
-            resultado["noise"] = readings.get("noise")
-        elif sid == "Q3CC-C9JS-4XB":
-            resultado["puerta"] = readings.get("door")
-        elif sid == "Q3CJ-274W-5B5Z":
-            resultado["watts1"] = readings.get("power")
-        elif sid == "Q3CJ-GN4K-8VS4":
-            resultado["watts2"] = readings.get("power")
+            if serial == "Q3CA-AT85-YJMB":  # Sensor 1
+                if tipo == "temperature":
+                    datos["sensor1"] = valor
+                if tipo == "humidity":
+                    datos["sensor1_humidity"] = valor
 
-    return resultado
+            elif serial == "Q3CA-5FF6-XF84":  # Sensor 2
+                if tipo == "temperature":
+                    datos["sensor2"] = valor
+                if tipo == "humidity":
+                    datos["sensor2_humidity"] = valor
 
+            elif serial == "Q3CQ-YVSZ-BHKR":  # Sensor MT15
+                if tipo == "temperature":
+                    datos["multi1_temp"] = valor
+                if tipo == "co2":
+                    datos["multi1_co2"] = valor
+                if tipo == "pm25":
+                    datos["multi1_pm25"] = valor
+                if tipo == "noise":
+                    datos["multi1_noise"] = valor
+
+            elif serial == "Q3CC-C9JS-4XB":  # Sensor Puerta MT20
+                if tipo == "door":
+                    datos["puerta1"] = valor["state"]
+
+            elif serial == "Q3CJ-274W-5B5Z":  # MT40 1
+                if tipo == "realPower":
+                    datos["power1"] = valor["draw"]
+
+            elif serial == "Q3CJ-GN4K-8VS4":  # MT40 2
+                if tipo == "realPower":
+                    datos["power2"] = valor["draw"]
+
+    return datos
+
+# === Google Sheets ===
 def guardar_en_google_sheets(datos):
     try:
-        import gspread
-        from google.oauth2.service_account import Credentials
+        creds = service_account.Credentials.from_service_account_file(
+            CREDENTIALS_PATH,
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+        service = build("sheets", "v4", credentials=creds)
+        sheet = service.spreadsheets()
 
-        scope = ["https://www.googleapis.com/auth/spreadsheets"]
-        creds = Credentials.from_service_account_file(cred_path, scopes=scope)
-        client = gspread.authorize(creds)
-        sheet = client.open_by_key(SHEET_ID).sheet1
-
-        fila = [
-            datos.get("timestamp"),
-            datos.get("temp1"), datos.get("hum1"),
-            datos.get("temp2"), datos.get("hum2"),
-            datos.get("temp3"), datos.get("co2"),
-            datos.get("pm25"), datos.get("noise"),
-            datos.get("puerta"),
-            datos.get("watts1"), datos.get("watts2")
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        values = [
+            [
+                now,
+                datos.get("sensor1"),
+                datos.get("sensor1_humidity"),
+                datos.get("sensor2"),
+                datos.get("sensor2_humidity"),
+                datos.get("multi1_temp"),
+                datos.get("multi1_co2"),
+                datos.get("multi1_pm25"),
+                datos.get("multi1_noise"),
+                datos.get("puerta1"),
+                datos.get("power1"),
+                datos.get("power2")
+            ]
         ]
-        sheet.append_row(fila)
-        logger.info("✅ Datos guardados en Google Sheets.")
+        body = {"values": values}
+        sheet.values().append(
+            spreadsheetId=SHEET_ID,
+            range="Hoja1!A1",
+            valueInputOption="RAW",
+            body=body
+        ).execute()
+        print("✅ Datos guardados automáticamente en Google Sheets.")
     except Exception as e:
-        logger.error(f"❌ Error al guardar en Google Sheets: {e}")
+        print("❌ Error guardando en Sheets:", e)
 
-def ciclo_autoguardado():
+# === Hilo de guardado automático ===
+def auto_guardado():
     global datos_sensores
     while True:
-        datos_api = obtener_datos_sensores()
-        datos = extraer_metricas(datos_api)
-        datos_sensores = datos
-        guardar_en_google_sheets(datos)
+        try:
+            datos = obtener_datos_sensores()
+            datos_sensores = datos
+            guardar_en_google_sheets(datos)
+        except Exception as e:
+            print("❌ Error general:", e)
         time.sleep(60)
 
-# ==== RUTAS ====
-
+# === Rutas ===
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -116,8 +150,7 @@ def sensor_data():
 def panel_mt40():
     return render_template("panel-mt40.html")
 
-# ==== INICIO DEL HILO AUTOMÁTICO ====
-
+# === Inicia ===
 if __name__ == "__main__":
-    Thread(target=ciclo_autoguardado, daemon=True).start()
+    threading.Thread(target=auto_guardado, daemon=True).start()
     app.run(host="0.0.0.0", port=10000)
