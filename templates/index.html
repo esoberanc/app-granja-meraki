@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Granja Inteligente</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: url('/static/Granja.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    #ia-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 50;
+    }
+    #ia-modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="text-white text-center">
+  <div class="mb-4 flex flex-col sm:flex-row gap-2 justify-center items-center">
+    <a href="/mt40" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded shadow">
+      ⚡ Consumo eléctrico
+    </a>
+    <button onclick="abrirIA()" class="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded shadow">
+      🤖 Asistente IA
+    </button>
+    <p class="px-4 py-2 bg-green-600 text-white font-semibold rounded shadow">✔️ Monitoreo activo</p>
+  </div>
+
+  <!-- Modal oculto -->
+  <div id="ia-modal" class="flex">
+    <div id="ia-modal-content">
+      <h2 class="text-xl font-bold mb-4">Asistente Inteligente</h2>
+      <p class="mb-4">Aquí irá la futura integración con el asistente de IA.</p>
+      <button onclick="cerrarIA()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    function abrirIA() {
+      document.getElementById('ia-modal').style.display = 'flex';
+    }
+    function cerrarIA() {
+      document.getElementById('ia-modal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
