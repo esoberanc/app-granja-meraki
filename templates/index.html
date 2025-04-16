@@ -3,160 +3,144 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Monitoreo Meraki</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Panel de Monitoreo - Granja</title>
   <style>
-    #granja-container {
-      position: relative;
-      width: 621px;
-      height: 409px;
+    body {
+      background-image: url("/static/Granja.png");
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
     }
-    #granja-img {
-      width: 100%;
-      height: auto;
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      padding: 20px;
     }
-    .cuadro {
-      position: absolute;
-      width: 60px;
-      height: 68px;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 12px;
-      color: white;
+    .card {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-radius: 10px;
       text-align: center;
-      padding: 5px;
-      white-space: pre-line;
+      font-size: 1.2em;
+      box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.3);
     }
-    #cuadro-9 { top: 147px; left: 25px; }
-    #cuadro-10 { top: 130px; left: 450px; }
-    #cuadro-11 { top: 145px; left: 225px; }
-    #cuadro-12 { top: 320px; left: 225px; }
-    #cuadro-13 { top: 310px; left: 515px; }
-    #cuadro-1 { top: 70px; left: 225px; }
-    #cuadro-2 { top: 245px; left: 225px; }
-    #cuadro-4 { top: 230px; left: 515px; }
-    #cuadro-5 { top: 310px; left: 435px; }
-    #cuadro-6 { top: 230px; left: 435px; }
-    #cuadro-8 { top: 378px; left: 284px; }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    .chat-panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: 350px;
+      background-color: #f4f4f4;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+    }
+    .chat-panel.active {
+      display: flex;
+    }
+    .chat-messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: white;
+    }
+    .chat-input {
+      display: flex;
+      gap: 5px;
+    }
+    .chat-input input {
+      flex-grow: 1;
+      padding: 8px;
+    }
+    .chat-input button {
+      background-color: #007bff;
+      color: white;
+    }
   </style>
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen text-center">
-
-  <h1 class="text-2xl font-bold mt-6 mb-4">📡 Monitoreo de Granja Tenebrio</h1>
-
-  <div class="mb-4 flex flex-col sm:flex-row gap-2 justify-center items-center">
-    <a href="/mt40" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded shadow">
-      ⚡ Consumo eléctrico
-    </a>
-    <p class="px-4 py-2 bg-green-600 text-white font-semibold rounded shadow">✔️ Monitoreo activo</p>
+<body>
+  <div class="top-bar">
+    <button onclick="location.href='/mt40'">Consumo eléctrico ⚡</button>
+    <button onclick="toggleChat()">Asistente IA 🤖</button>
   </div>
 
-  <div id="estado-general" class="mb-4 text-lg font-semibold text-center"></div>
+  <div class="container" id="sensorCards">
+    <!-- Los cuadros se llenan dinámicamente -->
+  </div>
 
-  <div id="granja-container">
-    <img id="granja-img" src="/static/Granja.png" alt="Granja" />
-    <div id="cuadro-1" class="cuadro">--</div>
-    <div id="cuadro-2" class="cuadro">--</div>
-    <div id="cuadro-4" class="cuadro">--</div>
-    <div id="cuadro-5" class="cuadro">--</div>
-    <div id="cuadro-6" class="cuadro">--</div>
-    <div id="cuadro-8" class="cuadro">--</div>
-    <div id="cuadro-9" class="cuadro">--</div>
-    <div id="cuadro-10" class="cuadro">--</div>
-    <div id="cuadro-11" class="cuadro">--</div>
-    <div id="cuadro-12" class="cuadro">--</div>
-    <div id="cuadro-13" class="cuadro">--</div>
+  <div class="chat-panel" id="chatPanel">
+    <h3>Asistente IA</h3>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Escribe tu pregunta...">
+      <button onclick="enviarPregunta()">Enviar</button>
+    </div>
   </div>
 
   <script>
-    async function getSensorData() {
-      try {
-        const response = await fetch("/sensor-data?guardar=true");
-        const data = await response.json();
+    function toggleChat() {
+      document.getElementById("chatPanel").classList.toggle("active");
+    }
 
-        const actualizar = (id, texto, color) => {
-          const el = document.getElementById(id);
-          el.textContent = texto;
-          el.style.backgroundColor = color;
-        };
+    async function enviarPregunta() {
+      const input = document.getElementById("chatInput");
+      const mensaje = input.value;
+      if (!mensaje) return;
 
-        const green = "#15803d";
-        const yellow = "#ca8a04";
-        const red = "#b91c1c";
-        const blue = "#0e7490";
+      const chatBox = document.getElementById("chatMessages");
+      chatBox.innerHTML += `<div><strong>Tú:</strong> ${mensaje}</div>`;
+      input.value = "";
 
-        if (data.sensor1 !== undefined)
-          actualizar("cuadro-1", `${data.sensor1.toFixed(1)}°C`, data.sensor1 < 22 || data.sensor1 > 30 ? red : (data.sensor1 < 24 || data.sensor1 > 28 ? yellow : green));
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ message: mensaje })
+      });
 
-        if (data.sensor2 !== undefined)
-          actualizar("cuadro-2", `${data.sensor2.toFixed(1)}°C`, data.sensor2 < 22 || data.sensor2 > 30 ? red : (data.sensor2 < 24 || data.sensor2 > 28 ? yellow : green));
+      const data = await response.json();
+      chatBox.innerHTML += `<div><strong>IA:</strong> ${data.respuesta}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-        if (data.multi1_co2 !== undefined) {
-          const ppm = data.multi1_co2;
-          const color = ppm <= 600 ? green : ppm <= 800 ? yellow : red;
-          actualizar("cuadro-4", `${ppm} ppm`, color);
-        }
-
-        if (data.multi1_noise !== undefined) {
-          const n = data.multi1_noise;
-          let texto = "Noisy", color = red, icon = "🔊";
-          if (n <= 40) [texto, color, icon] = ["Quiet", green, "🔈"];
-          else if (n <= 65) [texto, color, icon] = ["Moderate", yellow, "🔉"];
-          actualizar("cuadro-5", `${icon}
-${texto}
-${n} dB`, color);
-        }
-
-        if (data.multi1_pm25 !== undefined) {
-          const p = data.multi1_pm25;
-          let texto = "Poor", color = red;
-          if (p <= 40) [texto, color] = ["Good", green];
-          else if (p <= 70) [texto, color] = ["Moderate", yellow];
-          actualizar("cuadro-6", `\n${texto}\n${p} µg/m³`, color);
-        }
-
-        if (data.puerta1 !== undefined) {
-          const estado = data.puerta1 === "open" ? "Opened" : "Closed";
-          const color = data.puerta1 === "open" ? red : green;
-          actualizar("cuadro-8", estado, color);
-        }
-
-        if (data.power1 !== undefined)
-          actualizar("cuadro-9", `⚡\n${data.power1.toFixed(1)} W`, blue);
-
-        if (data.sensor1_humidity !== undefined) {
-          const h = data.sensor1_humidity;
-          const color = h >= 60 && h <= 70 ? green : (h >= 50 && h <= 75 ? yellow : red);
-          actualizar("cuadro-11", `${h}%`, color);
-        }
-
-        if (data.sensor2_humidity !== undefined) {
-          const h = data.sensor2_humidity;
-          const color = h >= 60 && h <= 70 ? green : (h >= 50 && h <= 75 ? yellow : red);
-          actualizar("cuadro-12", `${h}%`, color);
-        }
-
-        if (data.multi1_temp !== undefined) {
-          const t = data.multi1_temp;
-          const color = t < 22 || t > 30 ? red : (t < 24 || t > 28 ? yellow : green);
-          actualizar("cuadro-13", `${t.toFixed(1)}°C`, color);
-        }
-
-        if (data.power2 !== undefined)
-          actualizar("cuadro-10", `⚡\n${data.power2.toFixed(1)} W`, blue);
-
-        const estadoGeneral = document.getElementById("estado-general");
-        estadoGeneral.textContent = "✅ Ambiente óptimo";
-        estadoGeneral.style.color = "#15803d";
-
-      } catch (error) {
-        console.error("Error:", error);
+    async function cargarSensores() {
+      const res = await fetch('/sensor-data');
+      const data = await res.json();
+      const contenedor = document.getElementById('sensorCards');
+      contenedor.innerHTML = '';
+      for (const clave in data) {
+        const valor = data[clave];
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<strong>${clave}</strong><br>${valor}`;
+        contenedor.appendChild(card);
       }
     }
+
+    setInterval(cargarSensores, 5000);
+    cargarSensores();
+  </script>
+</body>
+</html>
+
 
     setInterval(getSensorData, 10000);
     window.onload = getSensorData;
