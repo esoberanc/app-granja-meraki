@@ -168,7 +168,7 @@ def obtener_datos_y_guardar():
     
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print("❌ Error general:", e)
     
 def iniciar_monitoreo_automatico():
     def loop():
