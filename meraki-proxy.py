@@ -1,79 +1,126 @@
-
-import os
-import json
-import requests
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
-import logging
+import requests
+import datetime
+import os
+import google.auth
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 app = Flask(__name__)
 CORS(app)
-logging.basicConfig(level=logging.INFO)
 
+# Configuración
 MERAKI_API_KEY = os.environ.get("MERAKI_API_KEY")
-SHEET_ID = os.environ.get("SHEET_ID")
-GOOGLE_SHEETS_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SHEET_ID}/values/Hoja1!A1:append?valueInputOption=RAW"
+ORGANIZATION_ID = "1654515"
+SHEET_ID = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
+CREDENTIALS_PATH = "/etc/secrets/credentials.json"
+
+# Sensores
+SERIALES = {
+    "sensor1": "Q3CA-AT85-YJMB",
+    "sensor2": "Q3CA-5FF6-XF84",
+    "multi1": "Q3CQ-YVSZ-BHKR",
+    "puerta1": "Q3CC-C9JS-4XB",
+    "mt40_1": "Q3CJ-274W-5B5Z",
+    "mt40_2": "Q3CJ-GN4K-8VS4",
+}
+
+def get_sensor_data():
+    url = f"https://api.meraki.com/api/v1/organizations/{ORGANIZATION_ID}/sensor/readings/latest"
+    headers = {
+        "X-Cisco-Meraki-API-Key": MERAKI_API_KEY,
+        "Content-Type": "application/json"
+    }
+    response = requests.get(url, headers=headers)
+    data = response.json()
+
+    parsed = {}
+    for reading in data:
+        serial = reading.get("serial")
+        metric = reading.get("metric")
+        value = reading.get(metric)
+        if serial == SERIALES["sensor1"]:
+            if metric == "temperature": parsed["sensor1"] = value.get("value")
+            if metric == "humidity": parsed["sensor1_humidity"] = value.get("value")
+        elif serial == SERIALES["sensor2"]:
+            if metric == "temperature": parsed["sensor2"] = value.get("value")
+            if metric == "humidity": parsed["sensor2_humidity"] = value.get("value")
+        elif serial == SERIALES["multi1"]:
+            if metric == "temperature": parsed["multi1_temp"] = value.get("value")
+            if metric == "pm25": parsed["multi1_pm25"] = value.get("value")
+            if metric == "noise": parsed["multi1_noise"] = value.get("value")
+            if metric == "co2": parsed["multi1_co2"] = value.get("value")
+        elif serial == SERIALES["puerta1"]:
+            if metric == "door": parsed["puerta1"] = value.get("state")
+        elif serial == SERIALES["mt40_1"]:
+            if metric == "realPower": parsed["power1"] = value.get("draw")
+            if metric == "apparentPower": parsed["apparentPower1"] = value.get("draw")
+            if metric == "current": parsed["current1"] = value.get("draw")
+            if metric == "voltage": parsed["voltage1"] = value.get("level")
+            if metric == "frequency": parsed["frequency1"] = value.get("level")
+            if metric == "powerFactor": parsed["powerFactor1"] = value.get("percentage")
+        elif serial == SERIALES["mt40_2"]:
+            if metric == "realPower": parsed["power2"] = value.get("draw")
+            if metric == "apparentPower": parsed["apparentPower2"] = value.get("draw")
+            if metric == "current": parsed["current2"] = value.get("draw")
+            if metric == "voltage": parsed["voltage2"] = value.get("level")
+            if metric == "frequency": parsed["frequency2"] = value.get("level")
+            if metric == "powerFactor": parsed["powerFactor2"] = value.get("percentage")
+    return parsed
+
+def guardar_en_sheets(datos):
+    creds = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH, scopes=["https://www.googleapis.com/auth/spreadsheets"])
+    service = build("sheets", "v4", credentials=creds)
+    sheet = service.spreadsheets()
+    
+    fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    fila = [
+        fecha,
+        datos.get("sensor1"),
+        datos.get("sensor2"),
+        datos.get("sensor1_humidity"),
+        datos.get("sensor2_humidity"),
+        datos.get("multi1_temp"),
+        datos.get("multi1_co2"),
+        datos.get("multi1_pm25"),
+        datos.get("multi1_noise"),
+        datos.get("puerta1"),
+        datos.get("power1"),
+        datos.get("power2"),
+        datos.get("powerFactor1"),
+        datos.get("powerFactor2"),
+        datos.get("voltage1"),
+        datos.get("voltage2"),
+        datos.get("current1"),
+        datos.get("current2"),
+        datos.get("apparentPower1"),
+        datos.get("apparentPower2"),
+        datos.get("frequency1"),
+        datos.get("frequency2"),
+    ]
+    body = {"values": [fila]}
+    sheet.values().append(
+        spreadsheetId=SHEET_ID,
+        range="Hoja1!A1",
+        valueInputOption="RAW",
+        body=body
+    ).execute()
+
+@app.route("/sensor-data")
+def sensor_data():
+    datos = get_sensor_data()
+    if request.args.get("guardar") == "true":
+        guardar_en_sheets(datos)
+    return jsonify(datos)
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
-@app.route("/sensor-data")
-def sensor_data():
-    guardar = request.args.get("guardar", "false").lower() == "true"
-    try:
-        headers = {
-            "X-Cisco-Meraki-API-Key": MERAKI_API_KEY,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
-        org_id = "1654515"
-        url = f"https://api.meraki.com/api/v1/organizations/{org_id}/sensor/readings/latest"
-        response = requests.get(url, headers=headers)
-        if response.status_code != 200:
-            logging.error(f"❌ Error consultando Meraki: {response.status_code} - {response.text}")
-            return "Error", 500
-
-        sensores = response.json()
-        logging.info("✅ Datos obtenidos correctamente")
-
-        # Extraemos los datos necesarios
-        data = {}
-        for sensor in sensores:
-            serial = sensor.get("serial")
-            for reading in sensor.get("readings", []):
-                metric = reading.get("metric")
-                value = list(reading.values())[1]  # El segundo valor es el dict con datos
-                if isinstance(value, dict):
-                    for k, v in value.items():
-                        data[f"{metric}_{k}_{serial}"] = v
-
-        if guardar:
-            logging.info("✅ Intentando guardar en Google Sheets...")
-            fila = [str(data.get(k, "")) for k in sorted(data)]
-            payload = {
-                "values": [fila]
-            }
-            logging.info(f"🔍 Payload enviado: {json.dumps(payload)}")
-            cred_path = "/etc/secrets/credentials.json"
-            if not os.path.exists(cred_path):
-                logging.error(f"❌ Archivo de credenciales no encontrado en {cred_path}")
-                return "Error", 500
-            access_token = json.load(open(cred_path))["access_token"]
-            g_headers = {
-                "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json"
-            }
-            g_response = requests.post(GOOGLE_SHEETS_URL, headers=g_headers, json=payload)
-            if g_response.status_code != 200:
-                logging.error(f"❌ Error guardando en Sheets: {g_response.status_code} - {g_response.text}")
-                return "Error", 500
-            logging.info("✅ Guardado exitoso en Google Sheets")
-
-        return jsonify(data)
-    except Exception as e:
-        logging.exception("❌ Error general:")
-        return "Error", 500
+@app.route("/mt40")
+def panel_mt40():
+    return render_template("panel-mt40.html")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
