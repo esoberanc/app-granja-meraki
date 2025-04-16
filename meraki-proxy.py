@@ -76,7 +76,7 @@ def guardar_en_sheets(sensor_data):
         print("❌ Error al guardar en Sheets:", e)
 
 @app.route("/sensor-data")
-def get_sensor_data():
+def obtener_datos_y_guardar():
     url = f"https://api.meraki.com/api/v1/organizations/{ORGANIZATION_ID}/sensor/readings/latest"
     headers = {
         "X-Cisco-Meraki-API-Key": MERAKI_API_KEY,
