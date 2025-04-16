@@ -24,8 +24,6 @@ SENSORS = {
     "power2": "Q3CJ-GN4K-8VS4"
 }
 
-SPREADSHEET_ID = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
-
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -182,5 +180,6 @@ def iniciar_monitoreo_automatico():
     hilo.start()
 
 if __name__ == "__main__":
+    iniciar_monitoreo_automatico()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
