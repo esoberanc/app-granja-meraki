@@ -5,12 +5,15 @@ from datetime import datetime
 import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+import threading
+import time
 
 app = Flask(__name__)
 CORS(app)
 
 MERAKI_API_KEY = os.environ.get("MERAKI_API_KEY")
 ORGANIZATION_ID = "1654515"
+SPREADSHEET_ID = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
 
 SENSORS = {
     "sensor1": "Q3CA-AT85-YJMB",
@@ -20,8 +23,6 @@ SENSORS = {
     "power1": "Q3CJ-274W-5B5Z",
     "power2": "Q3CJ-GN4K-8VS4"
 }
-
-SPREADSHEET_ID = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
 
 @app.route("/")
 def home():
@@ -71,11 +72,11 @@ def guardar_en_sheets(sensor_data):
             valueInputOption='RAW',
             body=body
         ).execute()
+        print("✅ Datos guardados automáticamente en Sheets")
     except Exception as e:
         print("❌ Error al guardar en Sheets:", e)
 
-@app.route("/sensor-data")
-def get_sensor_data():
+def obtener_datos_y_guardar():
     url = f"https://api.meraki.com/api/v1/organizations/{ORGANIZATION_ID}/sensor/readings/latest"
     headers = {
         "X-Cisco-Meraki-API-Key": MERAKI_API_KEY,
@@ -163,11 +164,20 @@ def get_sensor_data():
                         result["power2"] = draw
 
         guardar_en_sheets(result)
-        return jsonify(result)
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print("❌ Error general:", e)
+
+def iniciar_monitoreo_automatico():
+    def loop():
+        while True:
+            obtener_datos_y_guardar()
+            time.sleep(10)
+
+    hilo = threading.Thread(target=loop, daemon=True)
+    hilo.start()
 
 if __name__ == "__main__":
+    iniciar_monitoreo_automatico()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
