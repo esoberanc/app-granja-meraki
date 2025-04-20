@@ -229,7 +229,7 @@ Resumen:"""
         client = OpenAI(api_key=open("/etc/secrets/openai_key.txt").read().strip())
 
         response = client.completions.create(
-            model="gpt-3.5-turbo-instruct",
+            model="gpt-4o-mini",
              prompt=prompt,
              max_tokens=250,
              temperature=0.7
