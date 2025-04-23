@@ -240,10 +240,16 @@ def calcular_consumo_mensual():
             return jsonify({"error": "No se encontraron datos."})
 
         headers = [
-            "Fecha", "MT10 Temp1", "MT10 Temp2", "MT10 Hum1", "MT10 Hum2",
-            "MT15 Temp3", "MT15 CO2", "MT15 PM2.5", "MT15 Noise", "Puerta",
-            "MT40 Watts1 AC", "MT40 Watts 2 Humidificador"
-        ]
+    "Fecha", "MT10 Temp1", "MT10 Temp2", "MT10 Hum1", "MT10 Hum2",
+    "MT15 Temp3", "MT15 CO2", "MT15 PM2.5", "MT15 Noise", "Puerta",
+    "MT40 Watts1 AC", "MT40 Watts 2 Humidificador",
+    "MT40 PowerFactor1", "MT40 PowerFactor2",
+    "MT40 ApparentPower1", "MT40 ApparentPower2",
+    "MT40 Voltage1", "MT40 Voltage2",
+    "MT40 Current1", "MT40 Current2",
+    "MT40 Frequency1", "MT40 Frequency2"
+]
+
         df = pd.DataFrame(values, columns=headers)
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
