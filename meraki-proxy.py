@@ -86,7 +86,7 @@ def guardar_en_sheets(sensor_data):
     except Exception as e:
         print("❌ Error al guardar en Sheets:", e)
 
- @app.route("/api/frecuencia-muestreo")
+@app.route("/api/frecuencia-muestreo")
 def calcular_frecuencia_muestreo():
     try:
         cred_path = "/etc/secrets/credentials.json"
