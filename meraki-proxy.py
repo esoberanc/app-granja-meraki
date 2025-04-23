@@ -35,6 +35,11 @@ SENSORS = {
 def home():
     return render_template("index.html")
 
+@app.route("/energia")
+def ver_energia():
+    return render_template("energia.html")
+
+
 @app.route("/mt40")
 def mt40_panel():
     return render_template("panel-mt40.html")
