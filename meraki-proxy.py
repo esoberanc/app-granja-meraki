@@ -224,6 +224,15 @@ def obtener_datos_y_guardar():
 @app.route("/api/consumo-mensual")
 def calcular_consumo_mensual():
     try:
+        # Obtener frecuencia real de muestreo desde endpoint local
+        try:
+            freq_res = requests.get("http://localhost:5000/api/frecuencia-muestreo")
+            freq_data = freq_res.json()
+            frecuencia_s = freq_data.get("frecuencia_media_segundos", 11)
+        except Exception:
+            frecuencia_s = 11  # Fallback
+
+        # Leer desde Sheets
         cred_path = "/etc/secrets/credentials.json"
         spreadsheet_id = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
         range_name = "Hoja1!A2:Z"
@@ -240,15 +249,15 @@ def calcular_consumo_mensual():
             return jsonify({"error": "No se encontraron datos."})
 
         headers = [
-    "Fecha", "MT10 Temp1", "MT10 Temp2", "MT10 Hum1", "MT10 Hum2",
-    "MT15 Temp3", "MT15 CO2", "MT15 PM2.5", "MT15 Noise", "Puerta",
-    "MT40 Watts1 AC", "MT40 Watts 2 Humidificador",
-    "MT40 PowerFactor1", "MT40 PowerFactor2",
-    "MT40 ApparentPower1", "MT40 ApparentPower2",
-    "MT40 Voltage1", "MT40 Voltage2",
-    "MT40 Current1", "MT40 Current2",
-    "MT40 Frequency1", "MT40 Frequency2"
-]
+            "Fecha", "MT10 Temp1", "MT10 Temp2", "MT10 Hum1", "MT10 Hum2",
+            "MT15 Temp3", "MT15 CO2", "MT15 PM2.5", "MT15 Noise", "Puerta",
+            "MT40 Watts1 AC", "MT40 Watts 2 Humidificador",
+            "MT40 PowerFactor1", "MT40 PowerFactor2",
+            "MT40 ApparentPower1", "MT40 ApparentPower2",
+            "MT40 Voltage1", "MT40 Voltage2",
+            "MT40 Current1", "MT40 Current2",
+            "MT40 Frequency1", "MT40 Frequency2"
+        ]
 
         df = pd.DataFrame(values, columns=headers)
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
@@ -260,9 +269,8 @@ def calcular_consumo_mensual():
         df["MT40 Watts 2 Humidificador"] = pd.to_numeric(df["MT40 Watts 2 Humidificador"], errors="coerce")
 
         df["total_watts"] = df["MT40 Watts1 AC"].fillna(0) + df["MT40 Watts 2 Humidificador"].fillna(0)
-        total_wh = df["total_watts"].sum() * (11 / 3600)  # Usamos 11 segundos por muestra
+        total_wh = df["total_watts"].sum() * (frecuencia_s / 3600)
         total_kwh = round(total_wh / 1000, 2)
-
         coste = round(total_kwh * 0.25, 2)
 
         estacion = "primavera"
@@ -289,6 +297,7 @@ def calcular_consumo_mensual():
         import logging
         logging.exception("Error en /api/consumo-mensual")
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/resumen-ia")
 def leer_ultimos_registros_desde_sheets():
