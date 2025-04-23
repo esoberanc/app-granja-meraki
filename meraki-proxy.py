@@ -221,6 +221,69 @@ def obtener_datos_y_guardar():
     except Exception as e:
         print("❌ Error general:", e)
 
+@app.route("/api/consumo-mensual")
+def calcular_consumo_mensual():
+    try:
+        cred_path = "/etc/secrets/credentials.json"
+        spreadsheet_id = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
+        range_name = "Hoja1!A2:Z"
+
+        credentials = service_account.Credentials.from_service_account_file(
+            cred_path, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
+        )
+        service = build("sheets", "v4", credentials=credentials)
+        sheet = service.spreadsheets()
+        result = sheet.values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
+        values = result.get("values", [])
+
+        if not values:
+            return jsonify({"error": "No se encontraron datos."})
+
+        headers = [
+            "Fecha", "MT10 Temp1", "MT10 Temp2", "MT10 Hum1", "MT10 Hum2",
+            "MT15 Temp3", "MT15 CO2", "MT15 PM2.5", "MT15 Noise", "Puerta",
+            "MT40 Watts1 AC", "MT40 Watts 2 Humidificador"
+        ]
+        df = pd.DataFrame(values, columns=headers)
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+
+        now = pd.Timestamp.now()
+        df = df[(df["Fecha"].dt.month == now.month) & (df["Fecha"].dt.year == now.year)]
+
+        df["MT40 Watts1 AC"] = pd.to_numeric(df["MT40 Watts1 AC"], errors="coerce")
+        df["MT40 Watts 2 Humidificador"] = pd.to_numeric(df["MT40 Watts 2 Humidificador"], errors="coerce")
+
+        df["total_watts"] = df["MT40 Watts1 AC"].fillna(0) + df["MT40 Watts 2 Humidificador"].fillna(0)
+        total_wh = df["total_watts"].sum() * (11 / 3600)  # Usamos 11 segundos por muestra
+        total_kwh = round(total_wh / 1000, 2)
+
+        coste = round(total_kwh * 0.25, 2)
+
+        estacion = "primavera"
+        mes = now.month
+        horas_solares = {"invierno": 2.5, "primavera": 4.5, "verano": 5.5, "otonio": 3.5}
+        if mes in [12, 1, 2]: estacion = "invierno"
+        elif mes in [3, 4, 5]: estacion = "primavera"
+        elif mes in [6, 7, 8]: estacion = "verano"
+        elif mes in [9, 10, 11]: estacion = "otonio"
+
+        hs = horas_solares[estacion]
+        kw_necesarios = round(total_kwh / (30 * hs), 2)
+
+        return jsonify({
+            "kwh": total_kwh,
+            "coste_eur": coste,
+            "estacion": estacion,
+            "horas_solares": hs,
+            "paneles_kw": kw_necesarios,
+            "recomendacion": f"Paneles de {kw_necesarios} kW funcionando {hs} h/día compensan el consumo mensual."
+        })
+
+    except Exception as e:
+        import logging
+        logging.exception("Error en /api/consumo-mensual")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/resumen-ia")
 def leer_ultimos_registros_desde_sheets():
     try:
