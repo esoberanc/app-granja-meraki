@@ -300,6 +300,57 @@ def calcular_consumo_mensual():
         logging.exception("Error en /api/consumo-mensual")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/analisis-solar")
+def analisis_solar():
+    try:
+        # Reutilizamos el cálculo base de consumo mensual
+        response = calcular_consumo_mensual()
+        if isinstance(response, tuple):  # Si hubo error
+            return response
+
+        data = response.get_json()
+        kwh = data.get("kwh", 0)
+        coste_eur = data.get("coste_eur", 0)
+        hs_actual = data.get("horas_solares", 4.5)  # por seguridad
+
+        # Ahorro anual estimado
+        ahorro_anual_eur = round(kwh * 12 * 0.25, 2)
+
+        # Retorno de inversión (suponiendo coste 700 €/kW instalado)
+        coste_paneles = round(data.get("paneles_kw", 0) * 700, 2)
+        roi_anios = round(coste_paneles / ahorro_anual_eur, 1) if ahorro_anual_eur else None
+
+        # Impacto ecológico (0.5 kg CO2 por kWh en promedio)
+        co2_mensual = round(kwh * 0.5, 2)
+        co2_anual = round(co2_mensual * 12, 2)
+        equivalente_arboles = round(co2_anual / 21, 1)  # 1 árbol absorbe ~21 kg/año
+
+        # Tabla por estación
+        horas_por_estacion = {
+            "invierno": 2.5,
+            "primavera": 4.5,
+            "verano": 5.5,
+            "otonio": 3.5
+        }
+        paneles_por_estacion = {
+            est: round(kwh / (30 * hs), 2) for est, hs in horas_por_estacion.items()
+        }
+
+        return jsonify({
+            "ahorro_anual_eur": ahorro_anual_eur,
+            "coste_paneles": coste_paneles,
+            "roi_anios": roi_anios,
+            "co2_mensual": co2_mensual,
+            "co2_anual": co2_anual,
+            "equivalente_arboles": equivalente_arboles,
+            "paneles_por_estacion": paneles_por_estacion
+        })
+
+    except Exception as e:
+        import logging
+        logging.exception("Error en /api/analisis-solar")
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/api/resumen-ia")
