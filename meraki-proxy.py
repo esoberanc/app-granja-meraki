@@ -48,6 +48,76 @@ def mt40_panel():
 def mostrar_resumen_ia():
     return render_template("resumen-ia.html")
 
+def obtener_datos_consumo():
+    try:
+        # Leer desde Google Sheets
+        cred_path = "/etc/secrets/credentials.json"
+        spreadsheet_id = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
+        range_name = "Hoja1!A2:Z"
+
+        credentials = service_account.Credentials.from_service_account_file(
+            cred_path, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
+        )
+        service = build("sheets", "v4", credentials=credentials)
+        sheet = service.spreadsheets()
+        result = sheet.values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
+        values = result.get("values", [])
+
+        if not values:
+            return None
+
+        headers = [
+            "Fecha", "MT10 Temp1", "MT10 Temp2", "MT10 Hum1", "MT10 Hum2",
+            "MT15 Temp3", "MT15 CO2", "MT15 PM2.5", "MT15 Noise", "Puerta",
+            "MT40 Watts1 AC", "MT40 Watts 2 Humidificador",
+            "MT40 PowerFactor1", "MT40 PowerFactor2",
+            "MT40 ApparentPower1", "MT40 ApparentPower2",
+            "MT40 Voltage1", "MT40 Voltage2",
+            "MT40 Current1", "MT40 Current2",
+            "MT40 Frequency1", "MT40 Frequency2"
+        ]
+
+        df = pd.DataFrame(values, columns=headers)
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+
+        now = pd.Timestamp.now()
+        df = df[(df["Fecha"].dt.month == now.month) & (df["Fecha"].dt.year == now.year)]
+
+        df["MT40 Watts1 AC"] = pd.to_numeric(df["MT40 Watts1 AC"], errors="coerce")
+        df["MT40 Watts 2 Humidificador"] = pd.to_numeric(df["MT40 Watts 2 Humidificador"], errors="coerce")
+        df["total_watts"] = df["MT40 Watts1 AC"].fillna(0) + df["MT40 Watts 2 Humidificador"].fillna(0)
+
+        fechas_validas = df["Fecha"].dropna().sort_values()
+        intervalos = [(fechas_validas.iloc[i] - fechas_validas.iloc[i - 1]).total_seconds() for i in range(1, len(fechas_validas))]
+        frecuencia_s = round(sum(intervalos) / len(intervalos), 2) if intervalos else 11
+
+        total_wh = df["total_watts"].sum() * (frecuencia_s / 3600)
+        total_kwh = round(total_wh / 1000, 2)
+        coste = round(total_kwh * 0.25, 2)
+
+        estacion = "primavera"
+        mes = now.month
+        horas_solares = {"invierno": 2.5, "primavera": 4.5, "verano": 5.5, "otonio": 3.5}
+        if mes in [12, 1, 2]: estacion = "invierno"
+        elif mes in [3, 4, 5]: estacion = "primavera"
+        elif mes in [6, 7, 8]: estacion = "verano"
+        elif mes in [9, 10, 11]: estacion = "otonio"
+
+        hs = horas_solares[estacion]
+        kw_necesarios = round(total_kwh / (30 * hs), 2)
+
+        return {
+            "kwh": total_kwh,
+            "coste_eur": coste,
+            "estacion": estacion,
+            "horas_solares": hs,
+            "paneles_kw": kw_necesarios,
+            "frecuencia_s": frecuencia_s,
+            "recomendacion": f"Paneles de {kw_necesarios} kW funcionando {hs} h/día compensan el consumo mensual."
+        }
+    except:
+        return None
+
 def guardar_en_sheets(sensor_data):
     try:
         creds = service_account.Credentials.from_service_account_file(
@@ -303,29 +373,19 @@ def calcular_consumo_mensual():
 @app.route("/api/analisis-solar")
 def analisis_solar():
     try:
-        # Reutilizamos el cálculo base de consumo mensual
-        response = calcular_consumo_mensual()
-        if isinstance(response, tuple):  # Si hubo error
-            return response
+        data = obtener_datos_consumo()
+        if not data:
+            return jsonify({"error": "No se pudo calcular el consumo."}), 500
 
-        data = response.get_json()
         kwh = data.get("kwh", 0)
-        coste_eur = data.get("coste_eur", 0)
-        hs_actual = data.get("horas_solares", 4.5)  # por seguridad
-
-        # Ahorro anual estimado
         ahorro_anual_eur = round(kwh * 12 * 0.25, 2)
-
-        # Retorno de inversión (suponiendo coste 700 €/kW instalado)
         coste_paneles = round(data.get("paneles_kw", 0) * 700, 2)
         roi_anios = round(coste_paneles / ahorro_anual_eur, 1) if ahorro_anual_eur else None
 
-        # Impacto ecológico (0.5 kg CO2 por kWh en promedio)
         co2_mensual = round(kwh * 0.5, 2)
         co2_anual = round(co2_mensual * 12, 2)
-        equivalente_arboles = round(co2_anual / 21, 1)  # 1 árbol absorbe ~21 kg/año
+        equivalente_arboles = round(co2_anual / 21, 1)
 
-        # Tabla por estación
         horas_por_estacion = {
             "invierno": 2.5,
             "primavera": 4.5,
@@ -337,6 +397,7 @@ def analisis_solar():
         }
 
         return jsonify({
+            **data,
             "ahorro_anual_eur": ahorro_anual_eur,
             "coste_paneles": coste_paneles,
             "roi_anios": roi_anios,
@@ -345,13 +406,10 @@ def analisis_solar():
             "equivalente_arboles": equivalente_arboles,
             "paneles_por_estacion": paneles_por_estacion
         })
-
     except Exception as e:
         import logging
         logging.exception("Error en /api/analisis-solar")
         return jsonify({"error": str(e)}), 500
-
-
 
 @app.route("/api/resumen-ia")
 def leer_ultimos_registros_desde_sheets():
