@@ -53,8 +53,16 @@ ${consumoData.recomendacion}`;
     const data = await res.json();
 
     const panelesPorEstacion = Object.entries(data.paneles_por_estacion).map(
-      ([estacion, valor]) => `- ${estacion.charAt(0).toUpperCase() + estacion.slice(1)}: ${valor} kW`
-    ).join("\n");
+  ([estacion, valor]) => {
+    const explicacion = estacion === "invierno"
+      ? "(menos horas de sol)"
+      : estacion === "verano"
+        ? "(más horas de sol)"
+        : "";
+    return `- ${estacion.charAt(0).toUpperCase() + estacion.slice(1)}: ${valor} kW ${explicacion}`;
+  }
+).join("\n");
+
 
     const analisis = `
 💰 Ahorro anual estimado: €${data.ahorro_anual_eur}
