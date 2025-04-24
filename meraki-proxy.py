@@ -81,14 +81,8 @@ def login():
             return redirect(url_for("home"))
         return "❌ Usuario o contraseña incorrectos", 401
 
-    return '''
-    <form method="post">
-      <h2>🔐 Iniciar Sesión</h2>
-      <input name="username" placeholder="Usuario"><br>
-      <input type="password" name="password" placeholder="Contraseña"><br>
-      <input type="submit" value="Ingresar">
-    </form>
-    '''
+    return render_template("login.html")
+
 
 @app.route("/logout")
 @login_required
