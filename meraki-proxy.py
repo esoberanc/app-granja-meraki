@@ -224,15 +224,7 @@ def obtener_datos_y_guardar():
 @app.route("/api/consumo-mensual")
 def calcular_consumo_mensual():
     try:
-        # Obtener frecuencia real de muestreo desde endpoint local
-        try:
-            freq_res = requests.get("http://localhost:5000/api/frecuencia-muestreo")
-            freq_data = freq_res.json()
-            frecuencia_s = freq_data.get("frecuencia_media_segundos", 11)
-        except Exception:
-            frecuencia_s = 11  # Fallback
-
-        # Leer desde Sheets
+        # Leer desde Google Sheets
         cred_path = "/etc/secrets/credentials.json"
         spreadsheet_id = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
         range_name = "Hoja1!A2:Z"
@@ -262,6 +254,7 @@ def calcular_consumo_mensual():
         df = pd.DataFrame(values, columns=headers)
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
+        # Filtrar solo este mes
         now = pd.Timestamp.now()
         df = df[(df["Fecha"].dt.month == now.month) & (df["Fecha"].dt.year == now.year)]
 
@@ -269,10 +262,18 @@ def calcular_consumo_mensual():
         df["MT40 Watts 2 Humidificador"] = pd.to_numeric(df["MT40 Watts 2 Humidificador"], errors="coerce")
 
         df["total_watts"] = df["MT40 Watts1 AC"].fillna(0) + df["MT40 Watts 2 Humidificador"].fillna(0)
+
+        # 🔍 Calcular frecuencia real desde las fechas del mismo DataFrame
+        fechas_validas = df["Fecha"].dropna().sort_values()
+        intervalos = [(fechas_validas.iloc[i] - fechas_validas.iloc[i - 1]).total_seconds() for i in range(1, len(fechas_validas))]
+        frecuencia_s = round(sum(intervalos) / len(intervalos), 2) if intervalos else 11
+
+        # 🔢 Calcular consumo en Wh y kWh
         total_wh = df["total_watts"].sum() * (frecuencia_s / 3600)
         total_kwh = round(total_wh / 1000, 2)
         coste = round(total_kwh * 0.25, 2)
 
+        # ☀️ Estación y recomendación solar
         estacion = "primavera"
         mes = now.month
         horas_solares = {"invierno": 2.5, "primavera": 4.5, "verano": 5.5, "otonio": 3.5}
@@ -290,6 +291,7 @@ def calcular_consumo_mensual():
             "estacion": estacion,
             "horas_solares": hs,
             "paneles_kw": kw_necesarios,
+            "frecuencia_s": frecuencia_s,
             "recomendacion": f"Paneles de {kw_necesarios} kW funcionando {hs} h/día compensan el consumo mensual."
         })
 
@@ -297,6 +299,7 @@ def calcular_consumo_mensual():
         import logging
         logging.exception("Error en /api/consumo-mensual")
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/api/resumen-ia")
