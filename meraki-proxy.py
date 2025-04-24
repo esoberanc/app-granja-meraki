@@ -494,9 +494,10 @@ Resumen:"""
     
 def iniciar_monitoreo_automatico():
     def loop():
-        while True:
-            obtener_datos_y_guardar()
-            time.sleep(10)
+        with app.app_context():
+            while True:
+                obtener_datos_y_guardar()
+                time.sleep(10)
 
     hilo = threading.Thread(target=loop, daemon=True)
     hilo.start()
