@@ -11,11 +11,19 @@ import openai
 import gspread
 import pandas as pd
 from openai import OpenAI
+from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin, current_user
+import json
+
 
 
 
 
 app = Flask(__name__)
+app.secret_key = "clave-secreta-super-segura"  # para sesiones
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
 CORS(app)
 
 MERAKI_API_KEY = os.environ.get("MERAKI_API_KEY")
@@ -30,6 +38,20 @@ SENSORS = {
     "power1": "Q3CJ-274W-5B5Z",
     "power2": "Q3CJ-GN4K-8VS4"
 }
+
+class Usuario(UserMixin):
+    def __init__(self, id, username, password):
+        self.id = id
+        self.username = username
+        self.password = password
+
+with open("users.json") as f:
+    usuarios_json = json.load(f)
+    usuarios = [Usuario(i, u["username"], u["password"]) for i, u in enumerate(usuarios_json)]
+
+@login_manager.user_loader
+def load_user(user_id):
+    return next((u for u in usuarios if u.id == int(user_id)), None)
 
 @app.route("/")
 def home():
@@ -47,6 +69,33 @@ def mt40_panel():
 @app.route("/resumen-ia")
 def mostrar_resumen_ia():
     return render_template("resumen-ia.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        user = next((u for u in usuarios if u.username == username and u.password == password), None)
+        if user:
+            login_user(user)
+            return redirect(url_for("home"))
+        return "❌ Usuario o contraseña incorrectos", 401
+
+    return '''
+    <form method="post">
+      <h2>🔐 Iniciar Sesión</h2>
+      <input name="username" placeholder="Usuario"><br>
+      <input type="password" name="password" placeholder="Contraseña"><br>
+      <input type="submit" value="Ingresar">
+    </form>
+    '''
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
+
 
 def obtener_datos_consumo():
     try:
