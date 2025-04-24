@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consumo Energético</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-6">
+  <div class="bg-white shadow-xl rounded-lg p-6 max-w-xl w-full">
+    <h1 class="text-2xl font-bold text-center mb-4">🔋 Consumo Energético Mensual</h1>
+
+    <div id="resumen" class="text-gray-800 text-base leading-relaxed whitespace-pre-line mb-6">
+      Calculando consumo...
+    </div>
+
+    <h2 class="text-xl font-semibold text-center mb-2">☀️ Análisis Solar</h2>
+<div id="analisis-solar" class="text-gray-700 text-sm leading-relaxed whitespace-pre-line mb-6">
+  Cargando análisis...
+</div>
+
+    <div class="text-center">
+      <a href="/" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold px-4 py-2 rounded shadow">
+        ⬅️ Volver al panel
+      </a>
+    </div>
+  </div>
+
+  <script>
+    async function cargarResumenEnergia() {
+      try {
+        const consumoRes = await fetch("/api/consumo-mensual");
+        const consumoData = await consumoRes.json();
+
+const resumen = `
+📆 Estación actual: ${consumoData.estacion.charAt(0).toUpperCase() + consumoData.estacion.slice(1)}
+⚡ Consumo mensual estimado: ${consumoData.kwh} kWh
+💰 Coste estimado: €${consumoData.coste_eur}
+🧪 Frecuencia de muestreo: cada ${consumoData.frecuencia_s} segundos
+☀️ Recomendación solar:
+${consumoData.recomendacion}`;
+
+        document.getElementById("resumen").innerText = resumen;
+      } catch (error) {
+        document.getElementById("resumen").innerText = "Error al cargar datos.";
+        console.error(error);
+      }
+    }
+
+    async function cargarAnalisisSolar() {
+  try {
+    const res = await fetch("/api/analisis-solar");
+    const data = await res.json();
+
+    const panelesPorEstacion = Object.entries(data.paneles_por_estacion).map(
+      ([estacion, valor]) => `- ${estacion.charAt(0).toUpperCase() + estacion.slice(1)}: ${valor} kW`
+    ).join("\n");
+
+    const analisis = `
+💰 Ahorro anual estimado: €${data.ahorro_anual_eur}
+📉 Retorno de inversión: ${data.roi_anios} años
+🌍 CO₂ evitado: ${data.co2_mensual} kg/mes | ${data.co2_anual} kg/año
+🌳 Equivale a plantar ${data.equivalente_arboles} árboles/año
+📅 Recomendación por estación:
+${panelesPorEstacion}`;
+
+    document.getElementById("analisis-solar").innerText = analisis;
+  } catch (error) {
+    document.getElementById("analisis-solar").innerText = "Error al cargar análisis solar.";
+    console.error(error);
+  }
+}
+
+
+    cargarResumenEnergia();
+    cargarAnalisisSolar();
+
+
+
+  </script>
+</body>
+</html>
