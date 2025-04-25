@@ -13,6 +13,8 @@ import pandas as pd
 from openai import OpenAI
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin, current_user
 import json
+import smtplib
+from email.mime.text import MIMEText
 
 
 
@@ -457,6 +459,56 @@ def analisis_solar():
         import logging
         logging.exception("Error en /api/analisis-solar")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/enviar-informe")
+@login_required
+def enviar_informe():
+    try:
+        # Obtener datos de consumo y análisis
+        datos = obtener_datos_consumo()
+        if not datos:
+            return "No se pudieron obtener los datos de consumo", 500
+
+        kwh = datos["kwh"]
+        coste = datos["coste_eur"]
+        ahorro = round(kwh * 12 * 0.25, 2)
+        co2 = round(kwh * 0.5, 2)
+        roi = round((datos["paneles_kw"] * 700) / ahorro, 1) if ahorro else "N/A"
+
+        # Construir cuerpo del correo
+        cuerpo = f"""
+        🔋 Informe energético mensual
+
+        ⚡ Consumo mensual: {kwh} kWh
+        💰 Coste estimado: €{coste}
+        ☀️ Recomendación solar: {datos['recomendacion']}
+        💵 Ahorro anual estimado: €{ahorro}
+        🌱 CO₂ evitado mensual: {co2} kg
+        📉 Retorno de inversión estimado: {roi} años
+        """
+
+        # Configuración de correo
+        remitente = "tucorreo@gmail.com"
+        receptor = "destinatario@gmail.com"
+        password = "CLAVE_GENERADA_APP"
+
+        msg = MIMEText(cuerpo)
+        msg["Subject"] = "📊 Informe mensual - Granja Tenebrio"
+        msg["From"] = remitente
+        msg["To"] = receptor
+
+        # Enviar por SMTP (Gmail)
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as servidor:
+            servidor.login(remitente, password)
+            servidor.send_message(msg)
+
+        return "✅ Informe enviado correctamente."
+
+    except Exception as e:
+        import logging
+        logging.exception("Error al enviar informe")
+        return f"❌ Error al enviar: {str(e)}", 500
+
 
 @app.route("/api/resumen-ia")
 def leer_ultimos_registros_desde_sheets():
