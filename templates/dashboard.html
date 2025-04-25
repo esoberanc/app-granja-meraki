@@ -167,6 +167,34 @@ async function cargarSensores() {
 cargarSensores();
 </script>
 
+<script>
+async function cargarSensores() {
+  try {
+    const res = await fetch("/api/consumo-mensual");
+    const data = await res.json();
+
+    // Actualizar cuadros de la imagen
+    document.getElementById("temp1").innerText = `${data["MT10 Temp1"]}°C`;
+    document.getElementById("hum1").innerText = `${data["MT10 Hum1"]}%`;
+    document.getElementById("watts1").innerText = `${data["MT40 Watts1 AC"]} W`;
+    document.getElementById("watts2").innerText = `${data["MT40 Watts 2 Humidificador"]} W`;
+    document.getElementById("temp2").innerText = `${data["MT10 Temp2"]}°C`;
+    document.getElementById("hum2").innerText = `${data["MT10 Hum2"]}%`;
+    document.getElementById("puerta").innerText = data["Puerta"] === "closed" ? "Closed" : "Open";
+    document.getElementById("pm25").innerHTML = `Good<br>${data["MT15 PM2.5"]} µg/m³`;
+    document.getElementById("co2").innerText = `${data["MT15 CO2"]} ppm`;
+    document.getElementById("noise").innerHTML = `Quiet<br>${data["MT15 Noise"]} dB`;
+    document.getElementById("temp3").innerText = `${data["MT15 Temp3"]}°C`;
+
+  } catch (error) {
+    console.error("❌ Error cargando sensores:", error);
+  }
+}
+
+// Llamar la función cuando la página cargue
+cargarSensores();
+</script>
+
   
 </body>
 </html>
