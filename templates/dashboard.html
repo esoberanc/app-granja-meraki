@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edge Farming Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <!-- Barra superior -->
+  <header class="bg-white shadow p-4 flex justify-between items-center">
+    <div class="text-xl font-bold text-blue-600">Edge Farming</div>
+    <div class="flex space-x-4">
+      <a href="/energia" class="text-gray-700 hover:text-blue-600">📊 Dashboard</a>
+      <a href="/perfil" class="text-gray-700 hover:text-blue-600">👤 Perfil</a>
+      <a href="/logout" class="text-red-600 hover:text-red-700 font-semibold">🔓 Logout</a>
+    </div>
+  </header>
+
+  <!-- Contenido principal -->
+  <main class="p-6 space-y-8">
+
+    <!-- Tarjetas resumen -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <div class="text-lg font-semibold">⚡ Consumo</div>
+        <div class="text-2xl font-bold mt-2">-- kWh</div>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <div class="text-lg font-semibold">💰 Ahorro</div>
+        <div class="text-2xl font-bold mt-2">-- €/año</div>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <div class="text-lg font-semibold">📉 ROI</div>
+        <div class="text-2xl font-bold mt-2">-- años</div>
+      </div>
+    </section>
+
+    <!-- Imagen de la Granja -->
+    <section class="bg-white p-4 rounded-lg shadow">
+      <h2 class="text-xl font-bold mb-4">🏡 Granja Monitorizada</h2>
+      <div class="relative">
+        <img src="/static/Granja.png" alt="Imagen Granja" class="w-full rounded-lg">
+        <!-- Aquí se pueden sobreponer cuadros de sensores con posición absoluta -->
+      </div>
+    </section>
+
+    <!-- Gráficas -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h2 class="text-xl font-bold mb-4">📈 Consumo Diario</h2>
+        <div class="h-64 bg-gray-200 flex items-center justify-center">Gráfica 1</div>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h2 class="text-xl font-bold mb-4">🌞 Análisis Solar</h2>
+        <div class="h-64 bg-gray-200 flex items-center justify-center">Gráfica 2</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center text-gray-500 text-sm mt-8 p-4">
+    Edge Farming 2025 🚀 Todos los derechos reservados
+  </footer>
+
+</body>
+</html>
