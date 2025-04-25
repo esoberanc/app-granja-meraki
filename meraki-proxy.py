@@ -214,7 +214,7 @@ def guardar_en_sheets(sensor_data):
 def envio_automatico_informe():
     with app.app_context():
         try:
-           print("⏰ Ejecutando envio_automatico_informe...")
+            print("⏰ Ejecutando envio_automatico_informe...")
             enviar_informe()
         except Exception as e:
             print("❌ Error al enviar informe automático:", e)
