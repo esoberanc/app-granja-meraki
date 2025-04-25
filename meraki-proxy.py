@@ -488,9 +488,9 @@ def enviar_informe():
         """
 
         # Configuración de correo
-        remitente = "tucorreo@gmail.com"
-        receptor = "destinatario@gmail.com"
-        password = "CLAVE_GENERADA_APP"
+        remitente = "edu@edgefarming.cat"
+        receptor = "edu@edgefarming.es"
+        password = "ryydfkndhtzmtdwr"
 
         msg = MIMEText(cuerpo)
         msg["Subject"] = "📊 Informe mensual - Granja Tenebrio"
