@@ -15,6 +15,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, U
 import json
 import smtplib
 from email.mime.text import MIMEText
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 
@@ -209,6 +210,13 @@ def guardar_en_sheets(sensor_data):
         ).execute()
     except Exception as e:
         print("❌ Error al guardar en Sheets:", e)
+
+def envio_automatico_informe():
+    with app.app_context():
+        try:
+            enviar_informe()
+        except Exception as e:
+            print("❌ Error al enviar informe automático:", e)
 
 @app.route("/api/frecuencia-muestreo")
 def calcular_frecuencia_muestreo():
@@ -603,5 +611,12 @@ def iniciar_monitoreo_automatico():
 
 if __name__ == "__main__":
     iniciar_monitoreo_automatico()
+    
+    # Programar envío automático
+    scheduler = BackgroundScheduler()
+  #  scheduler.add_job(envio_automatico_informe, "cron", day_of_week="mon", hour=8, minute=0)
+    scheduler.add_job(envio_automatico_informe, "interval", minutes=1)
+    scheduler.start()
+
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
