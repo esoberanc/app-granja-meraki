@@ -77,6 +77,12 @@ def mt40_panel():
 def mostrar_resumen_ia():
     return render_template("resumen-ia.html")
 
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    return render_template("dashboard.html")
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
