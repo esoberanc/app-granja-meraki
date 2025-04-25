@@ -24,15 +24,15 @@
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-white p-4 rounded-lg shadow text-center">
         <div class="text-lg font-semibold">⚡ Consumo</div>
-        <div class="text-2xl font-bold mt-2">-- kWh</div>
+        <div id="consumo" class="text-2xl font-bold mt-2">-- kWh</div>
       </div>
       <div class="bg-white p-4 rounded-lg shadow text-center">
         <div class="text-lg font-semibold">💰 Ahorro</div>
-        <div class="text-2xl font-bold mt-2">-- €/año</div>
+        <div id="ahorro" class="text-2xl font-bold mt-2">-- €/año</div>
       </div>
       <div class="bg-white p-4 rounded-lg shadow text-center">
         <div class="text-lg font-semibold">📉 ROI</div>
-        <div class="text-2xl font-bold mt-2">-- años</div>
+        <div id="roi" class="text-2xl font-bold mt-2">-- años</div>
       </div>
     </section>
 
@@ -64,5 +64,26 @@
     Edge Farming 2025 🚀 Todos los derechos reservados
   </footer>
 
+  <script>
+    async function cargarDatosDashboard() {
+      try {
+        const res = await fetch("/api/consumo-mensual");
+        const data = await res.json();
+    
+        // Actualizar tarjetas
+        document.getElementById("consumo").innerText = `${data.kwh} kWh`;
+        document.getElementById("ahorro").innerText = `€${(data.kwh * 12 * 0.25).toFixed(2)} / año`;
+        document.getElementById("roi").innerText = `${(data.paneles_kw * 700 / (data.kwh * 12 * 0.25)).toFixed(1)} años`;
+      } catch (error) {
+        console.error("Error cargando datos del dashboard:", error);
+      }
+    }
+    
+    // Llamar la función al cargar
+    cargarDatosDashboard();
+    </script>
+    
+  
 </body>
 </html>
+
