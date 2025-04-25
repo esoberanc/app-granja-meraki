@@ -505,6 +505,7 @@ def enviar_informe():
         msg["Subject"] = "📊 Informe mensual - Granja Tenebrio"
         msg["From"] = remitente
         msg["To"] = receptor
+        print("📩 Intentando enviar informe...")
 
         # Enviar por SMTP (Gmail)
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as servidor:
