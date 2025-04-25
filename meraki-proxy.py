@@ -54,19 +54,23 @@ def load_user(user_id):
     return next((u for u in usuarios if u.id == int(user_id)), None)
 
 @app.route("/")
+@login_required
 def home():
     return render_template("index.html")
 
 @app.route("/energia")
+@login_required
 def ver_energia():
     return render_template("energia.html")
 
 
 @app.route("/mt40")
+@login_required
 def mt40_panel():
     return render_template("panel-mt40.html")
 
 @app.route("/resumen-ia")
+@login_required
 def mostrar_resumen_ia():
     return render_template("resumen-ia.html")
 
