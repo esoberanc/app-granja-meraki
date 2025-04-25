@@ -618,6 +618,7 @@ if __name__ == "__main__":
   #  scheduler.add_job(envio_automatico_informe, "cron", day_of_week="mon", hour=8, minute=0)
     scheduler.add_job(envio_automatico_informe, "interval", minutes=1)
     scheduler.start()
+    print("✅ Scheduler iniciado correctamente")
 
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
