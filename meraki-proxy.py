@@ -564,7 +564,7 @@ def leer_ultimos_registros_desde_sheets():
        # df = df.tail(1000)  # Filtrar últimos 1000 registros
 
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce", format="%Y-%m-%d %H:%M:%S")
-        fecha_limite = pd.Timestamp.now() - pd.Timedelta(days=7)
+        fecha_limite = pd.Timestamp.now() - pd.Timedelta(days=15)
         df = df[df["Fecha"] >= fecha_limite]
 
 
@@ -573,7 +573,7 @@ def leer_ultimos_registros_desde_sheets():
         # Preparar prompt para OpenAI
         prompt = f"""Actúa como un analista experto en sensores ambientales y consumo energético.
 A partir de este resumen estadístico generado a partir de los datos recolectados durante los últimos 
-7 días, redacta un informe corto para el cliente (máximo 5 líneas) que resuma el estado de su sistema de monitoreo, resaltando anomalías o recomendaciones si las hay, recordando que estos sensores están en una granja de tenebrio:
+15 días, redacta un informe corto para el cliente (máximo 5 líneas) que resuma el estado de su sistema de monitoreo, resaltando anomalías o recomendaciones si las hay, recordando que estos sensores están en una granja de tenebrio y agrega 5 bullets de plan de acción.
 
 {resumen_estadistico}
 
