@@ -135,6 +135,23 @@
         console.error("Error cargando datos del dashboard:", error);
       }
     }
+function asignarColor(id, valor, rangoOK, rangoAlerta = null) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const [minOK, maxOK] = rangoOK;
+  const [minAlerta, maxAlerta] = rangoAlerta || rangoOK;
+
+  el.classList.remove("bg-green-600", "bg-yellow-500", "bg-red-600");
+
+  if (valor < minAlerta || valor > maxAlerta) {
+    el.classList.add("bg-red-600"); // Alarma
+  } else if (valor < minOK || valor > maxOK) {
+    el.classList.add("bg-yellow-500"); // Precaución
+  } else {
+    el.classList.add("bg-green-600"); // Todo OK
+  }
+}
     
   
 async function cargarSensores() {
@@ -142,17 +159,46 @@ async function cargarSensores() {
     const res = await fetch("/sensor-data?guardar=true");
     const data = await res.json();
 
+    // Temperaturas
     document.getElementById("temp1").innerText = `${data.sensor1.toFixed(1)}°C`;
+    asignarColor("temp1", data.sensor1, [26, 28], [24, 30]);
+
     document.getElementById("temp2").innerText = `${data.sensor2.toFixed(1)}°C`;
-    document.getElementById("hum1").innerText = `${data.sensor1_humidity}%`;
-    document.getElementById("hum2").innerText = `${data.sensor2_humidity}%`;
+    asignarColor("temp2", data.sensor2, [26, 28], [24, 30]);
+
     document.getElementById("temp3").innerText = `${data.multi1_temp.toFixed(1)}°C`;
+    asignarColor("temp3", data.multi1_temp, [26, 28], [24, 30]);
+
+    // Humedades
+    document.getElementById("hum1").innerText = `${data.sensor1_humidity}%`;
+    asignarColor("hum1", data.sensor1_humidity, [60, 70], [50, 75]);
+
+    document.getElementById("hum2").innerText = `${data.sensor2_humidity}%`;
+    asignarColor("hum2", data.sensor2_humidity, [60, 70], [50, 75]);
+
+    // CO₂
     document.getElementById("co2").innerText = `${data.multi1_co2} ppm`;
+    asignarColor("co2", data.multi1_co2, [0, 800], [0, 1000]);
+
+    // PM2.5
     document.getElementById("pm25").innerHTML = `Good<br>${data.multi1_pm25} µg/m³`;
+    asignarColor("pm25", data.multi1_pm25, [0, 10], [0, 15]);
+
+    // Ruido
     document.getElementById("noise").innerHTML = `Quiet<br>${data.multi1_noise} dB`;
+    asignarColor("noise", data.multi1_noise, [0, 40], [0, 50]);
+
+    // Puerta
     document.getElementById("puerta").innerText = data.puerta1 === "open" ? "Open" : "Closed";
+    const puerta = document.getElementById("puerta");
+    puerta.classList.remove("bg-green-700", "bg-yellow-500");
+    puerta.classList.add(data.puerta1 === "closed" ? "bg-green-700" : "bg-yellow-500");
+
+    // Watts (sin alerta por ahora)
     document.getElementById("watts1").innerText = `${data.power1.toFixed(1)} W`;
     document.getElementById("watts2").innerText = `${data.power2.toFixed(1)} W`;
+
+
 
   } catch (error) {
     console.error("❌ Error cargando sensores:", error);
