@@ -103,6 +103,15 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 
+def get_worksheet():
+    creds = service_account.Credentials.from_service_account_file(
+        "/etc/secrets/credentials.json",
+        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    )
+    client = gspread.authorize(creds)
+    return client.open_by_key(SPREADSHEET_ID).worksheet("Hoja1")
+
+
 def obtener_datos_sheets():
     # Leer datos desde Google Sheets
     sheet = get_worksheet()
