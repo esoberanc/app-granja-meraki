@@ -525,6 +525,51 @@ def enviar_informe():
         logging.exception("Error al enviar informe")
         return f"❌ Error al enviar: {str(e)}", 500
 
+@app.route("/api/consumo-diario")
+def consumo_diario():
+    try:
+        df = obtener_datos_sheets()
+
+        if df.empty:
+            return jsonify([])
+
+        # Asegurar columnas necesarias
+        if not {"Fecha", "MT40 Watts1 AC", "MT40 Watts 2 Humidificador"}.issubset(df.columns):
+            return jsonify({"error": "Faltan columnas necesarias"}), 400
+
+        df["Fecha"] = pd.to_datetime(df["Fecha"])
+        df["Fecha_dia"] = df["Fecha"].dt.date
+
+        df["MT40 Watts1 AC"] = pd.to_numeric(df["MT40 Watts1 AC"], errors="coerce").fillna(0)
+        df["MT40 Watts 2 Humidificador"] = pd.to_numeric(df["MT40 Watts 2 Humidificador"], errors="coerce").fillna(0)
+
+        df["watts_totales"] = df["MT40 Watts1 AC"] + df["MT40 Watts 2 Humidificador"]
+
+        # Calcular la frecuencia de muestreo real
+        df_ordenado = df.sort_values("Fecha")
+        if len(df_ordenado) < 2:
+            frecuencia_seg = 60  # valor por defecto
+        else:
+            tiempos = df_ordenado["Fecha"].astype("int64") // 1_000_000_000  # convertir a segundos
+            diferencias = tiempos.diff().dropna()
+            frecuencia_seg = diferencias.mean()
+
+        # Calcular energía por fila (W × s ÷ 3600000 = kWh)
+        df["kwh"] = df["watts_totales"] * frecuencia_seg / 3600000
+
+        # Agrupar por día
+        consumo_por_dia = df.groupby("Fecha_dia")["kwh"].sum().reset_index()
+        consumo_por_dia["kwh"] = consumo_por_dia["kwh"].round(2)
+
+        resultado = consumo_por_dia.rename(columns={"Fecha_dia": "fecha"}).to_dict(orient="records")
+
+        return jsonify(resultado)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/resumen-ia")
 def leer_ultimos_registros_desde_sheets():
