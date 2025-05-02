@@ -103,10 +103,11 @@
 
     <!-- Gráficas -->
     <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="bg-white p-4 rounded-lg shadow">
-        <h2 class="text-xl font-bold mb-4">📈 Consumo Diario</h2>
-        <div class="h-64 bg-gray-200 flex items-center justify-center">Gráfica 1</div>
-      </div>
+       <!-- Gráfica de consumo diario -->
+<div class="bg-white p-4 rounded-lg shadow">
+  <h2 class="text-xl font-bold mb-4">📊 Consumo Diario</h2>
+  <div class="h-64 bg-gray-200 flex items-center justify-center">Gráfica 1</div>
+</div>
       <div class="bg-white p-4 rounded-lg shadow">
         <h2 class="text-xl font-bold mb-4">🌞 Análisis Solar</h2>
         <div class="h-64 bg-gray-200 flex items-center justify-center">Gráfica 2</div>
@@ -208,6 +209,61 @@ async function cargarSensores() {
 // Llamar la función cuando la página cargue
 cargarDatosDashboard();
 cargarSensores();
+</script>
+
+  <!-- Chart.js desde CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+async function cargarGraficoConsumo() {
+  try {
+    const res = await fetch("/api/consumo-diario");
+    const datos = await res.json();
+
+    const labels = datos.map(d => d.fecha);
+    const valores = datos.map(d => d.kwh);
+
+    const ctx = document.getElementById("graficoConsumo").getContext("2d");
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Consumo (kWh)",
+          data: valores,
+          backgroundColor: "rgba(37, 99, 235, 0.2)",
+          borderColor: "rgba(37, 99, 235, 1)",
+          borderWidth: 2,
+          pointRadius: 3,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: "kWh"
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: "Fecha"
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error al cargar gráfica de consumo:", error);
+  }
+}
+
+// Ejecutar la función
+cargarGraficoConsumo();
 </script>
 
   
