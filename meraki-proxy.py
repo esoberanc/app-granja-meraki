@@ -103,6 +103,21 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 
+def obtener_datos_sheets():
+    # Leer datos desde Google Sheets
+    sheet = get_worksheet()
+    valores = sheet.get_all_values()
+
+    if not valores or len(valores) < 2:
+        return pd.DataFrame()
+
+    headers = valores[0]
+    filas = valores[1:]
+
+    df = pd.DataFrame(filas, columns=headers)
+    df.replace("", pd.NA, inplace=True)
+    return df
+
 
 def obtener_datos_consumo():
     try:
@@ -528,7 +543,8 @@ def enviar_informe():
 @app.route("/api/consumo-diario")
 def consumo_diario():
     try:
-        df = obtener_datos_consumo()
+        df = obtener_datos_sheets()
+
 
 
         if df.empty:
