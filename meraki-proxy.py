@@ -555,9 +555,11 @@ def consumo_diario():
         df = obtener_datos_sheets()
 
 
-
         if df.empty:
             return jsonify([])
+
+        print("🧪 Columnas encontradas:", df.columns.tolist())
+
 
         # Asegurar columnas necesarias
         if not {"Fecha", "MT40 Watts1 AC", "MT40 Watts 2 Humidificador"}.issubset(df.columns):
