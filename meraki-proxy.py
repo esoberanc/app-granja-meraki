@@ -558,21 +558,20 @@ def consumo_diario():
         if df.empty:
             return jsonify([])
 
-        print("🧪 Columnas detectadas:", df.columns.tolist())
-
-
+        
 
         # Asegurar columnas necesarias
-        if not {"Fecha", "MT40 Watts1 AC", "MT40 Watts 2 Humidificador"}.issubset(df.columns):
+        if not {"Fecha", "MT40 AC RealPo", "MT40 Hum RealPo"}.issubset(df.columns):
+
             return jsonify({"error": "Faltan columnas necesarias"}), 400
 
         df["Fecha"] = pd.to_datetime(df["Fecha"])
         df["Fecha_dia"] = df["Fecha"].dt.date
 
-        df["MT40 Watts1 AC"] = pd.to_numeric(df["MT40 Watts1 AC"], errors="coerce").fillna(0)
-        df["MT40 Watts 2 Humidificador"] = pd.to_numeric(df["MT40 Watts 2 Humidificador"], errors="coerce").fillna(0)
+        df["MT40 AC RealPo"] = pd.to_numeric(df["MT40 AC RealPo"], errors="coerce").fillna(0)
+        df["MT40 Hum RealPo"] = pd.to_numeric(df["MT40 Hum RealPo"], errors="coerce").fillna(0)
 
-        df["watts_totales"] = df["MT40 Watts1 AC"] + df["MT40 Watts 2 Humidificador"]
+        df["watts_totales"] = df["MT40 AC RealPo"] + df["MT40 Hum RealPo"]
 
         # Calcular la frecuencia de muestreo real
         df_ordenado = df.sort_values("Fecha")
