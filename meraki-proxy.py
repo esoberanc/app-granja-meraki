@@ -558,7 +558,8 @@ def consumo_diario():
         if df.empty:
             return jsonify([])
 
-        print("🧪 Columnas encontradas:", df.columns.tolist())
+        print("🧪 Columnas detectadas:", df.columns.tolist())
+
 
 
         # Asegurar columnas necesarias
