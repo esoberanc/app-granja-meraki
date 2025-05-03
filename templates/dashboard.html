@@ -220,7 +220,7 @@ async function cargarGraficoConsumo() {
     const res = await fetch("/api/consumo-diario");
     const datos = await res.json();
 
-    const labels = datos.map(d => d.fecha);
+    const labels = datos.map(d => new Date(d.fecha).toISOString().split('T')[0]);  // 👈 Formatea a YYYY-MM-DD
     const valores = datos.map(d => d.kwh);
 
     const ctx = document.getElementById("graficoConsumo").getContext("2d");
@@ -262,9 +262,9 @@ async function cargarGraficoConsumo() {
   }
 }
 
-// Ejecutar la función
 cargarGraficoConsumo();
 </script>
+
 
   
 </body>
