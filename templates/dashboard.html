@@ -136,24 +136,7 @@
         console.error("Error cargando datos del dashboard:", error);
       }
     }
-function asignarColor(id, valor, rangoOK, rangoAlerta = null) {
-  const el = document.getElementById(id);
-  if (!el) return;
-
-  const [minOK, maxOK] = rangoOK;
-  const [minAlerta, maxAlerta] = rangoAlerta || rangoOK;
-
-  el.classList.remove("bg-green-600", "bg-yellow-500", "bg-red-600");
-
-  if (valor < minAlerta || valor > maxAlerta) {
-    el.classList.add("bg-red-600"); // Alarma
-  } else if (valor < minOK || valor > maxOK) {
-    el.classList.add("bg-yellow-500"); // Precaución
-  } else {
-    el.classList.add("bg-green-600"); // Todo OK
-  }
-}
-    
+   
   
 async function cargarSensores() {
   try {
@@ -162,32 +145,33 @@ async function cargarSensores() {
 
 // Temperaturas
 document.getElementById("temp1").innerText = `${data.sensor1.toFixed(1)}°C`;
-asignarColor("temp1", data.sensor1, [26, 28], [24, 30]);
+asignarColor("temp1", data.sensor1, "temp");
 
 document.getElementById("temp2").innerText = `${data.sensor2.toFixed(1)}°C`;
-asignarColor("temp2", data.sensor2, [26, 28], [24, 30]);
+asignarColor("temp2", data.sensor2, "temp");
 
 document.getElementById("temp3").innerText = `${data.multi1_temp.toFixed(1)}°C`;
-asignarColor("temp3", data.multi1_temp, [26, 28], [24, 30]);
+asignarColor("temp3", data.multi1_temp, "temp");
+
 
 // Humedad
 document.getElementById("hum1").innerText = `${data.sensor1_hum.toFixed(0)}%`;
-asignarColor("hum1", data.sensor1_hum, [55, 65], [45, 70]);
+asignarColor("hum1", data.sensor1_hum, "hum");
 
 document.getElementById("hum2").innerText = `${data.sensor2_hum.toFixed(0)}%`;
-asignarColor("hum2", data.sensor2_hum, [55, 65], [45, 70]);
+asignarColor("hum2", data.sensor2_hum, "hum");;
 
 // CO₂
 document.getElementById("co2").innerText = `${data.multi1_co2.toFixed(0)} ppm`;
-asignarColor("co2", data.multi1_co2, [0, 800], [0, 1000]);
+asignarColor("co2", data.multi1_co2, "co2");
 
 // PM2.5
 document.getElementById("pm25").innerText = `${data.multi1_pm25.toFixed(0)} µg/m³`;
-asignarColor("pm25", data.multi1_pm25, [0, 10], [0, 25]);
+asignarColor("pm25", data.multi1_pm25, "pm25");
 
 // Ruido
 document.getElementById("noise").innerText = `${data.multi1_noise.toFixed(0)} dB`;
-asignarColor("noise", data.multi1_noise, [30, 40], [25, 50]);
+asignarColor("noise", data.multi1_noise, "noise");
 
 // Watts (con color azul fijo)
 document.getElementById("watts1").innerText = `${data.power1.toFixed(1)} W`;
