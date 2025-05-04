@@ -215,7 +215,7 @@ cargarSensores();
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-window.onload = async function cargarGraficoConsumo() {
+document.addEventListener("DOMContentLoaded", async function () {
   try {
     const res = await fetch("/api/consumo-diario");
     const datos = await res.json();
@@ -223,7 +223,13 @@ window.onload = async function cargarGraficoConsumo() {
     const labels = datos.map(d => new Date(d.fecha).toISOString().split('T')[0]);
     const valores = datos.map(d => d.kwh);
 
-    const ctx = document.getElementById("graficoConsumo").getContext("2d");
+    const canvas = document.getElementById("graficoConsumo");
+    if (!canvas) {
+      console.error("❌ No se encontró el canvas con ID 'graficoConsumo'");
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
     new Chart(ctx, {
       type: "line",
       data: {
@@ -260,12 +266,7 @@ window.onload = async function cargarGraficoConsumo() {
   } catch (error) {
     console.error("Error al cargar gráfica de consumo:", error);
   }
-}
+});
 </script>
 
-
-
-  
-</body>
-</html>
 
