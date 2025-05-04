@@ -162,20 +162,20 @@ async function cargarSensores() {
 
     // Temperaturas
     document.getElementById("temp1").innerText = `${data.sensor1.toFixed(1)}°C`;
-    asignarColor("temp1", data.sensor1, [26, 28], [24, 30]);
+asignarColor("temp1", data.sensor1, "temp");
 
-    document.getElementById("temp2").innerText = `${data.sensor2.toFixed(1)}°C`;
-    asignarColor("temp2", data.sensor2, [26, 28], [24, 30]);
+document.getElementById("temp2").innerText = `${data.sensor2.toFixed(1)}°C`;
+asignarColor("temp2", data.sensor2, "temp");
 
-    document.getElementById("temp3").innerText = `${data.multi1_temp.toFixed(1)}°C`;
-    asignarColor("temp3", data.multi1_temp, [26, 28], [24, 30]);
+document.getElementById("temp3").innerText = `${data.multi1_temp.toFixed(1)}°C`;
+asignarColor("temp3", data.multi1_temp, "temp");
 
-    // Humedades
-    document.getElementById("hum1").innerText = `${data.sensor1_humidity}%`;
-    asignarColor("hum1", data.sensor1_humidity, [60, 70], [50, 75]);
+ // Humedades
+document.getElementById("hum1").innerText = `${data.hum1.toFixed(0)}%`;
+asignarColor("hum1", data.hum1, "hum");
 
-    document.getElementById("hum2").innerText = `${data.sensor2_humidity}%`;
-    asignarColor("hum2", data.sensor2_humidity, [60, 70], [50, 75]);
+document.getElementById("hum2").innerText = `${data.hum2.toFixed(0)}%`;
+asignarColor("hum2", data.hum2, "hum");
 
     // CO₂
     document.getElementById("co2").innerText = `${data.multi1_co2} ppm`;
@@ -272,5 +272,34 @@ cargarSensores();
   document.addEventListener("DOMContentLoaded", cargarGraficoConsumo);
 </script>
 
+<script>
+  function asignarColor(id, valor, tipo) {
+    let clase = "bg-red-600";
+
+    if (tipo === "temp") {
+      if (valor >= 24 && valor <= 26) {
+        clase = "bg-green-600";
+      } else if ((valor >= 22 && valor < 24) || (valor > 26 && valor <= 28)) {
+        clase = "bg-yellow-500";
+      }
+    }
+
+    if (tipo === "hum") {
+      if (valor >= 55 && valor <= 65) {
+        clase = "bg-green-600";
+      } else if ((valor >= 50 && valor < 55) || (valor > 65 && valor <= 70)) {
+        clase = "bg-yellow-500";
+      }
+    }
+
+    const el = document.getElementById(id);
+    if (el) {
+      el.className = `rounded px-2 py-1 text-white text-sm ${clase}`;
+    }
+  }
+</script>
+
+
+  
 </body>
 </html>
