@@ -554,18 +554,16 @@ def consumo_diario():
     try:
         df = obtener_datos_sheets()
 
-
         if df.empty:
             return jsonify([])
 
-        
+        print("🧪 Columnas detectadas:", df.columns.tolist())
 
-        # Asegurar columnas necesarias
         if not {"Fecha", "MT40 AC RealPo", "MT40 Hum RealPo"}.issubset(df.columns):
-
             return jsonify({"error": "Faltan columnas necesarias"}), 400
 
-        df["Fecha"] = pd.to_datetime(df["Fecha"])
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df = df[df["Fecha"] > pd.Timestamp.now() - pd.Timedelta(days=30)]
         df["Fecha_dia"] = df["Fecha"].dt.date
 
         df["MT40 AC RealPo"] = pd.to_numeric(df["MT40 AC RealPo"], errors="coerce").fillna(0)
@@ -573,23 +571,24 @@ def consumo_diario():
 
         df["watts_totales"] = df["MT40 AC RealPo"] + df["MT40 Hum RealPo"]
 
-        # Calcular la frecuencia de muestreo real
         df_ordenado = df.sort_values("Fecha")
         if len(df_ordenado) < 2:
-            frecuencia_seg = 60  # valor por defecto
+            frecuencia_seg = 60
         else:
-            tiempos = df_ordenado["Fecha"].astype("int64") // 1_000_000_000  # convertir a segundos
+            tiempos = df_ordenado["Fecha"].astype("int64") // 1_000_000_000
             diferencias = tiempos.diff().dropna()
             frecuencia_seg = diferencias.mean()
 
-        # Calcular energía por fila (W × s ÷ 3600000 = kWh)
         df["kwh"] = df["watts_totales"] * frecuencia_seg / 3600000
 
-        # Agrupar por día
         consumo_por_dia = df.groupby("Fecha_dia")["kwh"].sum().reset_index()
         consumo_por_dia["kwh"] = consumo_por_dia["kwh"].round(2)
 
         resultado = consumo_por_dia.rename(columns={"Fecha_dia": "fecha"}).to_dict(orient="records")
+
+        del df  # liberar memoria
+        import gc
+        gc.collect()
 
         return jsonify(resultado)
 
@@ -597,6 +596,7 @@ def consumo_diario():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/api/resumen-ia")
