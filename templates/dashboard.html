@@ -160,44 +160,55 @@ async function cargarSensores() {
     const res = await fetch("/sensor-data?guardar=true");
     const data = await res.json();
 
-    // Temperaturas
-    document.getElementById("temp1").innerText = `${data.sensor1.toFixed(1)}°C`;
-asignarColor("temp1", data.sensor1, "temp");
+// Temperaturas
+document.getElementById("temp1").innerText = `${data.sensor1.toFixed(1)}°C`;
+asignarColor("temp1", data.sensor1, [26, 28], [24, 30]);
 
 document.getElementById("temp2").innerText = `${data.sensor2.toFixed(1)}°C`;
-asignarColor("temp2", data.sensor2, "temp");
+asignarColor("temp2", data.sensor2, [26, 28], [24, 30]);
 
 document.getElementById("temp3").innerText = `${data.multi1_temp.toFixed(1)}°C`;
-asignarColor("temp3", data.multi1_temp, "temp");
+asignarColor("temp3", data.multi1_temp, [26, 28], [24, 30]);
 
- // Humedades
-document.getElementById("hum1").innerText = `${data.hum1.toFixed(0)}%`;
-asignarColor("hum1", data.hum1, "hum");
+// Humedad
+document.getElementById("hum1").innerText = `${data.sensor1_hum.toFixed(0)}%`;
+asignarColor("hum1", data.sensor1_hum, [55, 65], [45, 70]);
 
-document.getElementById("hum2").innerText = `${data.hum2.toFixed(0)}%`;
-asignarColor("hum2", data.hum2, "hum");
+document.getElementById("hum2").innerText = `${data.sensor2_hum.toFixed(0)}%`;
+asignarColor("hum2", data.sensor2_hum, [55, 65], [45, 70]);
 
-    // CO₂
-    document.getElementById("co2").innerText = `${data.co2.toFixed(0)} ppm`;
-asignarColor("co2", data.co2, "co2");
+// CO₂
+document.getElementById("co2").innerText = `${data.multi1_co2.toFixed(0)} ppm`;
+asignarColor("co2", data.multi1_co2, [0, 800], [0, 1000]);
 
-    // PM2.5
-   document.getElementById("pm25").innerText = `${data.pm25.toFixed(1)} µg/m³`;
-asignarColor("pm25", data.pm25, "pm25");
+// PM2.5
+document.getElementById("pm25").innerText = `${data.multi1_pm25.toFixed(0)} µg/m³`;
+asignarColor("pm25", data.multi1_pm25, [0, 10], [0, 25]);
 
-    // Ruido
-   document.getElementById("noise").innerText = `${data.noise.toFixed(1)} dB`;
-asignarColor("noise", data.noise, "noise");
+// Ruido
+document.getElementById("noise").innerText = `${data.multi1_noise.toFixed(0)} dB`;
+asignarColor("noise", data.multi1_noise, [30, 40], [25, 50]);
+
+// Watts (con color azul fijo)
+document.getElementById("watts1").innerText = `${data.power1.toFixed(1)} W`;
+document.getElementById("watts1").className = "bg-blue-700 text-white px-3 py-1 rounded-lg text-sm shadow font-semibold";
+
+document.getElementById("watts2").innerText = `${data.power2.toFixed(1)} W`;
+document.getElementById("watts2").className = "bg-blue-700 text-white px-3 py-1 rounded-lg text-sm shadow font-semibold";
+
 
     // Puerta
-    document.getElementById("puerta").innerText = data.puerta1 === "open" ? "Open" : "Closed";
-    const puerta = document.getElementById("puerta");
-    puerta.classList.remove("bg-green-700", "bg-yellow-500");
-    puerta.classList.add(data.puerta1 === "closed" ? "bg-green-700" : "bg-yellow-500");
+    const puertaElem = document.getElementById("puerta");
+puertaElem.innerText = data.puerta;
 
-    // Watts (sin alerta por ahora)
-    document.getElementById("watts1").innerText = `${data.power1.toFixed(1)} W`;
-    document.getElementById("watts2").innerText = `${data.power2.toFixed(1)} W`;
+if (data.puerta.toLowerCase() === "open") {
+  puertaElem.className = "bg-red-600 text-white px-3 py-1 rounded-lg text-sm shadow font-semibold";
+} else {
+  puertaElem.className = "bg-green-600 text-white px-3 py-1 rounded-lg text-sm shadow font-semibold";
+}
+
+
+
 
 
 
