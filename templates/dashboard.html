@@ -294,7 +294,9 @@ cargarSensores();
 
     const el = document.getElementById(id);
     if (el) {
-      el.className = `rounded px-2 py-1 text-white text-sm ${clase}`;
+      el.classList.remove("bg-green-600", "bg-yellow-500", "bg-red-600");
+el.classList.add(clase);
+
     }
   }
 </script>
