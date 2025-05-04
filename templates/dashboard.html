@@ -292,14 +292,37 @@ cargarSensores();
       }
     }
 
+    if (tipo === "co2") {
+      if (valor < 800) {
+        clase = "bg-green-600";
+      } else if (valor < 1200) {
+        clase = "bg-yellow-500";
+      }
+    }
+
+    if (tipo === "pm25") {
+      if (valor <= 15) {
+        clase = "bg-green-600";
+      } else if (valor <= 35) {
+        clase = "bg-yellow-500";
+      }
+    }
+
+    if (tipo === "noise") {
+      if (valor < 45) {
+        clase = "bg-green-600";
+      } else if (valor < 60) {
+        clase = "bg-yellow-500";
+      }
+    }
+
     const el = document.getElementById(id);
     if (el) {
-      el.classList.remove("bg-green-600", "bg-yellow-500", "bg-red-600");
-el.classList.add(clase);
-
+      el.className = `rounded px-2 py-1 text-white text-sm ${clase}`;
     }
   }
 </script>
+
 
 
   
