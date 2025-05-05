@@ -155,11 +155,12 @@ asignarColor("temp3", data.multi1_temp, "temp");
 
 
 // Humedad
-document.getElementById("hum1").innerText = `${data.sensor1_hum.toFixed(0)}%`;
-asignarColor("hum1", data.sensor1_hum, "hum");
+document.getElementById("hum1").innerText = `${data.sensor1_hum.toFixed(1)}%`;
+asignarColor("hum1", data.sensor1_hum, "humedad");
 
 document.getElementById("hum2").innerText = `${data.sensor2_hum.toFixed(0)}%`;
-asignarColor("hum2", data.sensor2_hum, "hum");;
+asignarColor("hum2", data.sensor2_hum, "humedad");
+
 
 // CO₂
 document.getElementById("co2").innerText = `${data.multi1_co2.toFixed(0)} ppm`;
