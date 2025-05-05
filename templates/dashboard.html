@@ -48,7 +48,8 @@
     </div>
 
     <!-- Humedad superior -->
-    <div id="hum1" class="absolute left-[39%] top-[40%] px-3 py-1 rounded-lg text-sm font-semibold shadow">
+  
+<div id="hum1" class="absolute left-[43%] top-[40%] text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">
   --%
 </div>
 
@@ -68,7 +69,7 @@
     </div>
 
     <!-- Humedad inferior -->
-    <div id="hum2" class="absolute left-[39%] top-[69%] px-3 py-1 rounded-lg text-sm font-semibold shadow">
+    <div id="hum2" class="absolute left-[47%] top-[69%] px-3 py-1 rounded-lg text-sm font-semibold shadow text-white">
   --%
 </div>
 
@@ -155,8 +156,9 @@ asignarColor("temp3", data.multi1_temp, "temp");
 
 
 // Humedad
-document.getElementById("hum1").innerText = `${data.sensor1_hum.toFixed(0)}%`;
-asignarColor("hum1", data.sensor1_hum, "hum");
+document.getElementById("hum1").innerText = `${data.sensor1_humidity.toFixed(0)}%`;
+asignarColor("hum1", data.sensor1_humidity, "humedad");
+
 
 document.getElementById("hum2").innerText = `${data.sensor2_hum.toFixed(0)}%`;
 asignarColor("hum2", data.sensor2_hum, "hum");
@@ -280,7 +282,7 @@ cargarSensores();
       }
     }
 
-    if (tipo === "hum") {
+    if (tipo === "humedad") {
       if (valor >= 55 && valor <= 65) {
         clase = "bg-green-600";
       } else if ((valor >= 50 && valor < 55) || (valor > 65 && valor <= 70)) {
