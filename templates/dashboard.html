@@ -179,11 +179,12 @@ asignarColor("noise", data.multi1_noise, "noise");
 
 // Watts (con color azul fijo)
 document.getElementById("watts1").innerText = `${data.power1.toFixed(1)} W`;
-document.getElementById("watts1").className = "bg-blue-700 text-white px-3 py-1 rounded-lg text-sm shadow font-semibold";
+document.getElementById("watts1").classList.remove("bg-green-600", "bg-yellow-500", "bg-red-600");
+document.getElementById("watts1").classList.add("bg-blue-700");
 
 document.getElementById("watts2").innerText = `${data.power2.toFixed(1)} W`;
-document.getElementById("watts2").className = "bg-blue-700 text-white px-3 py-1 rounded-lg text-sm shadow font-semibold";
-
+document.getElementById("watts2").classList.remove("bg-green-600", "bg-yellow-500", "bg-red-600");
+document.getElementById("watts2").classList.add("bg-blue-700");
 
     // Puerta
     const puertaElem = document.getElementById("puerta");
