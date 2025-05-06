@@ -190,13 +190,17 @@ document.getElementById("watts2").classList.remove("bg-green-600", "bg-yellow-50
 document.getElementById("watts2").classList.add("bg-blue-700");
 
     // Puerta
-    const puertaElem = document.getElementById("puerta");
+
+const puertaElem = document.getElementById("puerta");
 puertaElem.innerText = data.puerta1;
 
+// Remueve solo clases de color previas y agrega la nueva
+puertaElem.classList.remove("bg-green-600", "bg-red-600");
+
 if (data.puerta1.toLowerCase() === "open") {
-  puertaElem.className = "bg-red-600 text-white px-3 py-1 rounded-lg text-sm shadow font-semibold";
+  puertaElem.classList.add("bg-red-600");
 } else {
-  puertaElem.className = "bg-green-600 text-white px-3 py-1 rounded-lg text-sm shadow font-semibold";
+  puertaElem.classList.add("bg-green-600");
 }
 
 
