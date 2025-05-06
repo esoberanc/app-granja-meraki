@@ -39,8 +39,14 @@
     <!-- Imagen de la Granja -->
 <section class="bg-white p-4 rounded-lg shadow relative">
   <h2 class="text-xl font-bold mb-4">🏡 Granja Monitorizada</h2>
+  
   <div class="relative w-full max-w-3xl mx-auto">
     <img src="/static/Granja.png" alt="Imagen Granja" class="w-full rounded-lg" />
+
+     <!-- Estado puerta -->
+   <div id="puerta" class="absolute left-[47%] top-[73%] text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">
+  Closed
+</div>
 
     <!-- Temperatura superior -->
     <div id="temp1" class="absolute left-[39%] top-[31%] text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">
@@ -74,12 +80,7 @@
   --%
 </div>
 
-    <!-- Estado puerta -->
-   <div id="puerta" class="absolute left-[47%] top-[73%] text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">
-  Closed
-</div>
-
-
+   
     <!-- PM2.5 -->
     <div id="pm25" class="absolute right-[10%] top-[55%] text-white px-3 py-1 rounded-lg text-sm font-semibold shadow">
       Good<br>0 µg/m³
@@ -100,9 +101,9 @@
       25.7°C
     </div>
   </div>
+
+  
 </section>
-
-
 
     <!-- Gráficas -->
     <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
