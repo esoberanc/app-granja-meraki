@@ -112,7 +112,7 @@ def get_worksheet():
     return client.open_by_key(SPREADSHEET_ID).worksheet("Hoja1")
 
 
-def obtener_datos_sheets():
+def obtener_datos_sheets(limit=500):
     # Leer datos desde Google Sheets
     sheet = get_worksheet()
     valores = sheet.get_all_values()
@@ -123,9 +123,13 @@ def obtener_datos_sheets():
     headers = valores[0]
     filas = valores[1:]
 
+    if len(filas) > limit:
+        filas = filas[-limit:]  # solo las últimas 500 filas
+
     df = pd.DataFrame(filas, columns=headers)
     df.replace("", pd.NA, inplace=True)
     return df
+
 
 
 def obtener_datos_consumo():
