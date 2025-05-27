@@ -16,6 +16,8 @@ import json
 import smtplib
 from email.mime.text import MIMEText
 from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
+load_dotenv()
 
 
 
@@ -32,6 +34,8 @@ CORS(app)
 MERAKI_API_KEY = os.environ.get("MERAKI_API_KEY")
 ORGANIZATION_ID = "1654515"
 SPREADSHEET_ID = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 SENSORS = {
     "sensor1": "Q3CA-AT85-YJMB",
@@ -201,6 +205,36 @@ def obtener_datos_consumo():
         }
     except:
         return None
+def guardar_en_supabase(data):
+    url = f"{SUPABASE_URL}/rest/v1/lecturas"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+    }
+
+    payload = {
+        "sensor1": data.get("sensor1"),
+        "sensor2": data.get("sensor2"),
+        "sensor1_hum": data.get("sensor1_hum"),
+        "sensor2_hum": data.get("sensor2_hum"),
+        "multi1_temp": data.get("multi1_temp"),
+        "multi1_co2": data.get("multi1_co2"),
+        "multi1_pm25": data.get("multi1_pm25"),
+        "multi1_noise": data.get("multi1_noise"),
+        "puerta": data.get("puerta1"),
+        "power1": data.get("power1"),
+        "power2": data.get("power2")
+    }
+
+    try:
+        res = requests.post(url, headers=headers, json=payload)
+        res.raise_for_status()
+        print("✅ Lectura guardada en Supabase")
+    except Exception as e:
+        print(f"❌ Error al guardar en Supabase: {e}")
+
 
 def guardar_en_sheets(sensor_data):
     try:
