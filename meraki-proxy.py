@@ -410,7 +410,8 @@ def obtener_datos_y_guardar():
                     elif serial == SENSORS["power2"]:
                         result["power2"] = draw
 
-        guardar_en_sheets(result)
+        # guardar_en_sheets(result)
+        guardar_en_supabase(result)
         return jsonify(result)
     
 
