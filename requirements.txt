@@ -9,3 +9,4 @@ pandas
 openai
 gspread
 apscheduler
+python-dotenv
