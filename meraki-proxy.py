@@ -215,6 +215,7 @@ def guardar_en_supabase(data):
     }
 
     payload = {
+        "fecha": datetime.utcnow().isoformat(),
         "sensor1": data.get("sensor1"),
         "sensor2": data.get("sensor2"),
         "sensor1_hum": data.get("sensor1_hum"),
