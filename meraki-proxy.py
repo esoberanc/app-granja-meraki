@@ -228,7 +228,7 @@ def guardar_en_supabase(data):
         "power1": data.get("power1"),
         "power2": data.get("power2")
     }
-
+    print("📦 Payload enviado a Supabase:", payload)  # 👈 Añádelo aquí
     try:
         res = requests.post(url, headers=headers, json=payload)
         res.raise_for_status()
