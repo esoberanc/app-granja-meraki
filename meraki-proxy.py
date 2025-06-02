@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, render_template, redirect, url_for
 from flask_cors import CORS
 import requests
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -215,7 +216,7 @@ def guardar_en_supabase(data):
     }
 
     payload = {
-        "fecha": datetime.utcnow().isoformat(),
+        fecha": datetime.now(ZoneInfo("Europe/Madrid")).isoformat(),
         "sensor1": data.get("sensor1"),
         "sensor2": data.get("sensor2"),
         "sensor1_hum": data.get("sensor1_humidity"),
