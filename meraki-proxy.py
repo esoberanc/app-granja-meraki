@@ -615,7 +615,7 @@ def enviar_informe():
 @app.route("/api/consumo-diario")
 def consumo_diario():
     try:
-       # df = obtener_datos_sheets()
+       
         df = obtener_datos_supabase()
 
 
@@ -667,83 +667,47 @@ def consumo_diario():
 
 
 @app.route("/api/resumen-ia")
-def leer_ultimos_registros_desde_sheets():
+def resumen_ia():
     try:
-        # Leer credenciales desde Render
-        cred_path = "/etc/secrets/credentials.json"
-        spreadsheet_id = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
-        range_name = "Hoja1!A2:Z"
-
-        scopes = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-        credentials = service_account.Credentials.from_service_account_file(
-            cred_path, scopes=scopes
-        )
-        service = build("sheets", "v4", credentials=credentials)
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
-        values = result.get("values", [])
-
-        if not values:
+        df = obtener_datos_supabase()
+        if df.empty:
             return jsonify({"resumen": "No se encontraron datos."})
 
-        headers = ["Fecha", "MT10 Temp1", "MT10 Temp2", "MT10 Hum1", "MT10 Hum2",
-                   "MT15 Temp3", "MT15 CO2", "MT15 PM2.5", "MT15 Noise", "Puerta",
-                   "MT40 Watts1 AC", "MT40 Watts 2 Humidificador",
-                   "MT40 PowerFactor1", "MT40 PowerFactor2",
-                   "MT40 Voltage1", "MT40 Voltage2",
-                   "MT40 Current1", "MT40 Current2",
-                   "MT40 ApparentPower1", "MT40 ApparentPower2",
-                   "MT40 Frequency1", "MT40 Frequency2"]
-
-        df = pd.DataFrame(values, columns=headers)
+        # Convertir a datetime
+        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+        df = df.dropna(subset=["fecha"])
+        df = df[df["fecha"] > pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=15)]
 
         # Convertir columnas numéricas
-        for col in headers[1:]:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+        for col in ["sensor1", "sensor2", "sensor1_hum", "sensor2_hum", "multi1_temp", "multi1_co2", "multi1_pm25", "multi1_noise", "power1", "power2"]:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
 
-       # df = df.tail(1000)  # Filtrar últimos 1000 registros
+        # Estadísticas para IA
+        descripcion = df.describe().to_string()
 
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce", format="%Y-%m-%d %H:%M:%S")
-        fecha_limite = pd.Timestamp.now() - pd.Timedelta(days=15)
-        df = df[df["Fecha"] >= fecha_limite]
+        prompt = f"""Actúa como un experto en eficiencia ambiental y energía. Te paso un dataset con variables como temperatura, humedad, ruido, CO2, PM2.5 y consumo eléctrico.
+Tu tarea es analizar las estadísticas, identificar anomalías o valores que se salgan de los rangos ideales, y dar una conclusión clara para el usuario final que opera una granja de insectos tenebrio.
+Sé conciso pero profesional. Aquí están los datos:
 
-
-        resumen_estadistico = df.describe().to_string()
-
-        # Preparar prompt para OpenAI
-        prompt = f"""Actúa como un analista experto en sensores ambientales y consumo energético.
-A partir de este resumen estadístico generado a partir de los datos recolectados durante los últimos 
-15 días, redacta un informe corto para el cliente (máximo 5 líneas) que resuma el estado de su sistema de monitoreo, resaltando anomalías o recomendaciones si las hay, recordando que estos sensores están en una granja de tenebrio y agrega 5 bullets de plan de acción.
-
-{resumen_estadistico}
+{descripcion}
 
 Resumen:"""
 
-        client = OpenAI(api_key=open("/etc/secrets/openai_key.txt").read().strip())
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        respuesta = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}]
+        )
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-             messages=[
-        {
-"role": "system", "content": "Eres un analista experto en sensores ambientales y consumo energético."
-},
-        {
-"role": "user", "content"
-: prompt}
-    ],
-    max_tokens=250,
-    temperature=0.7
-)
-
-        resumen = response.choices[0].message.content.strip()
-
-       
+        resumen = respuesta.choices[0].message.content.strip()
         return jsonify({"resumen": resumen})
 
     except Exception as e:
-        import logging
-        logging.exception("❌ Error en análisis IA")
-        return jsonify({"resumen": f"Error: {str(e)}"}), 500
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
 
 
     
