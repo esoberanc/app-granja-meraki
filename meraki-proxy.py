@@ -694,11 +694,20 @@ Sé conciso pero profesional. Aquí están los datos:
 
 Resumen:"""
 
-    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    client = OpenAI(api_key=open("/etc/secrets/openai_key.txt").read().strip())
 
-    respuesta = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+             messages=[
+        {
+"role": "system", "content": "Eres un analista experto en sensores ambientales y consumo energético."
+},
+        {
+"role": "user", "content"
+: prompt}
+    ],
+    max_tokens=250,
+    temperature=0.7
 )
 
         resumen = respuesta.choices[0].message.content.strip()
