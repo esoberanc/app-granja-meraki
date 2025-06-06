@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, render_template, redirect, url_for
+from flask import current_app
 from flask_cors import CORS
 import requests
 from datetime import datetime, timedelta
@@ -304,12 +305,11 @@ def guardar_en_sheets(sensor_data):
         print("❌ Error al guardar en Sheets:", e)
 
 def envio_automatico_informe():
-    with app.app_context():
-        try:
-            print("⏰ Ejecutando envio_automatico_informe...")
+    try:
+        with current_app.app_context():
             enviar_informe()
-        except Exception as e:
-            print("❌ Error al enviar informe automático:", e)
+    except Exception as e:
+        print(f"❌ Error al enviar informe automático: {e}")
 
 @app.route("/api/frecuencia-muestreo")
 def calcular_frecuencia_muestreo():
@@ -445,64 +445,36 @@ def obtener_datos_y_guardar():
 @app.route("/api/consumo-mensual")
 def calcular_consumo_mensual():
     try:
-        # Leer desde Google Sheets
-        cred_path = "/etc/secrets/credentials.json"
-        spreadsheet_id = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
-        range_name = "Hoja1!A2:Z"
+        df = obtener_datos_supabase(limit=1000)  # puedes ajustar el límite si es necesario
 
-        credentials = service_account.Credentials.from_service_account_file(
-            cred_path, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
-        )
-        service = build("sheets", "v4", credentials=credentials)
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
-        values = result.get("values", [])
-
-        if not values:
+        if df.empty:
             return jsonify({"error": "No se encontraron datos."})
 
-        headers = [
-            "Fecha", "MT10 Temp1", "MT10 Temp2", "MT10 Hum1", "MT10 Hum2",
-            "MT15 Temp3", "MT15 CO2", "MT15 PM2.5", "MT15 Noise", "Puerta",
-            "MT40 Watts1 AC", "MT40 Watts 2 Humidificador",
-            "MT40 PowerFactor1", "MT40 PowerFactor2",
-            "MT40 ApparentPower1", "MT40 ApparentPower2",
-            "MT40 Voltage1", "MT40 Voltage2",
-            "MT40 Current1", "MT40 Current2",
-            "MT40 Frequency1", "MT40 Frequency2"
-        ]
+        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+        df = df[df["fecha"].dt.month == pd.Timestamp.now().month]
+        df = df[df["fecha"].dt.year == pd.Timestamp.now().year]
 
-        df = pd.DataFrame(values, columns=headers)
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df["power1"] = pd.to_numeric(df["power1"], errors="coerce").fillna(0)
+        df["power2"] = pd.to_numeric(df["power2"], errors="coerce").fillna(0)
+        df["total_watts"] = df["power1"] + df["power2"]
 
-        # Filtrar solo este mes
-        now = pd.Timestamp.now()
-        df = df[(df["Fecha"].dt.month == now.month) & (df["Fecha"].dt.year == now.year)]
+        fechas_validas = df["fecha"].dropna().sort_values()
+        intervalos = [(fechas_validas.iloc[i] - fechas_validas.iloc[i - 1]).total_seconds()
+                      for i in range(1, len(fechas_validas))]
+        frecuencia_s = round(sum(intervalos) / len(intervalos), 2) if intervalos else 60
 
-        df["MT40 Watts1 AC"] = pd.to_numeric(df["MT40 Watts1 AC"], errors="coerce")
-        df["MT40 Watts 2 Humidificador"] = pd.to_numeric(df["MT40 Watts 2 Humidificador"], errors="coerce")
-
-        df["total_watts"] = df["MT40 Watts1 AC"].fillna(0) + df["MT40 Watts 2 Humidificador"].fillna(0)
-
-        # 🔍 Calcular frecuencia real desde las fechas del mismo DataFrame
-        fechas_validas = df["Fecha"].dropna().sort_values()
-        intervalos = [(fechas_validas.iloc[i] - fechas_validas.iloc[i - 1]).total_seconds() for i in range(1, len(fechas_validas))]
-        frecuencia_s = round(sum(intervalos) / len(intervalos), 2) if intervalos else 11
-
-        # 🔢 Calcular consumo en Wh y kWh
         total_wh = df["total_watts"].sum() * (frecuencia_s / 3600)
         total_kwh = round(total_wh / 1000, 2)
         coste = round(total_kwh * 0.25, 2)
 
-        # ☀️ Estación y recomendación solar
+        mes = pd.Timestamp.now().month
         estacion = "primavera"
-        mes = now.month
-        horas_solares = {"invierno": 2.5, "primavera": 4.5, "verano": 5.5, "otonio": 3.5}
         if mes in [12, 1, 2]: estacion = "invierno"
         elif mes in [3, 4, 5]: estacion = "primavera"
         elif mes in [6, 7, 8]: estacion = "verano"
         elif mes in [9, 10, 11]: estacion = "otonio"
 
+        horas_solares = {"invierno": 2.5, "primavera": 4.5, "verano": 5.5, "otonio": 3.5}
         hs = horas_solares[estacion]
         kw_necesarios = round(total_kwh / (30 * hs), 2)
 
@@ -520,6 +492,7 @@ def calcular_consumo_mensual():
         import logging
         logging.exception("Error en /api/consumo-mensual")
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/analisis-solar")
 def analisis_solar():
