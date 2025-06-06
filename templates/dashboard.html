@@ -114,10 +114,10 @@
   <canvas id="graficoConsumo" class="w-full h-64"></canvas>
 
 </div>
-      <div class="bg-white p-4 rounded-lg shadow">
-        <h2 class="text-xl font-bold mb-4">🌞 Análisis Solar</h2>
-        <div class="h-64 bg-gray-200 flex items-center justify-center">Gráfica 2</div>
-      </div>
+      <div class="bg-white p-4 rounded-lg shadow mt-6">
+  <h2 class="text-xl font-bold mb-4">☀️ Análisis Solar</h2>
+  <canvas id="graficoSolar" class="w-full h-64"></canvas>
+</div>
     </section>
 
   </main>
@@ -224,60 +224,52 @@ cargarSensores();
 
 <script>
   async function cargarGraficoConsumo() {
+    // ya lo tienes
+  }
+
+  async function cargarGraficoSolar() {
     try {
-      const res = await fetch("/api/consumo-diario");
-      const datos = await res.json();
+      const res = await fetch("/api/analisis-solar");
+      const data = await res.json();
 
-      const labels = datos.map(d => new Date(d.fecha).toISOString().split('T')[0]);
-      const valores = datos.map(d => d.kwh);
-
-      const canvas = document.getElementById("graficoConsumo");
-      if (!canvas) {
-        console.error("❌ No se encontró el canvas con ID 'graficoConsumo'");
+      if (data.error) {
+        console.error("❌ Error en análisis solar:", data.error);
         return;
       }
 
-      const ctx = canvas.getContext("2d");
+      const ctx = document.getElementById("graficoSolar").getContext("2d");
       new Chart(ctx, {
-        type: "line",
+        type: "bar",
         data: {
-          labels: labels,
+          labels: ["kWh mensual", "Horas solares/día", "Paneles requeridos (kW)"],
           datasets: [{
-            label: "Consumo (kWh)",
-            data: valores,
-            backgroundColor: "rgba(37, 99, 235, 0.2)",
-            borderColor: "rgba(37, 99, 235, 1)",
-            borderWidth: 2,
-            pointRadius: 3,
-            tension: 0.3
+            label: "Análisis Solar",
+            data: [data.kwh, data.horas_solares, data.paneles_kw],
+            backgroundColor: ["#34d399", "#60a5fa", "#fbbf24"]
           }]
         },
         options: {
           responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: "kWh"
-              }
-            },
-            x: {
-              title: {
-                display: true,
-                text: "Fecha"
-              }
+          plugins: {
+            title: {
+              display: true,
+              text: data.recomendacion,
+              font: { size: 14 }
             }
           }
         }
       });
-    } catch (error) {
-      console.error("Error al cargar gráfica de consumo:", error);
+    } catch (e) {
+      console.error("❌ Error al cargar análisis solar:", e);
     }
   }
 
-  document.addEventListener("DOMContentLoaded", cargarGraficoConsumo);
+  document.addEventListener("DOMContentLoaded", () => {
+    cargarGraficoConsumo();
+    cargarGraficoSolar(); // <-- asegúrate de que esta línea se incluya también
+  });
 </script>
+
 
 <script>
   function asignarColor(id, valor, tipo) {
