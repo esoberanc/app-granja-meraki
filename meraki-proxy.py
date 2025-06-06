@@ -710,7 +710,7 @@ Resumen:"""
     temperature=0.7
 )
 
-        resumen = respuesta.choices[0].message.content.strip()
+        resumen = response.choices[0].message.content.strip()
         return jsonify({"resumen": resumen})
 
     except Exception as e:
