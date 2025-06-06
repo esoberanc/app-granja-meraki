@@ -694,7 +694,7 @@ Sé conciso pero profesional. Aquí están los datos:
 
 Resumen:"""
 
-    client = OpenAI(api_key=open("/etc/secrets/openai_key.txt").read().strip())
+        client = OpenAI(api_key=open("/etc/secrets/openai_key.txt").read().strip())
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
