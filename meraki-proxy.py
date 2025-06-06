@@ -117,7 +117,7 @@ def get_worksheet():
     return client.open_by_key(SPREADSHEET_ID).worksheet("Hoja1")
 
 
-def obtener_datos_sheets(limit=500):
+# def obtener_datos_sheets(limit=500):
     # Leer datos desde Google Sheets
     sheet = get_worksheet()
     valores = sheet.get_all_values()
@@ -593,7 +593,8 @@ def enviar_informe():
 @app.route("/api/consumo-diario")
 def consumo_diario():
     try:
-        df = obtener_datos_sheets()
+        df = obtener_datos_supabase()
+
 
         if df.empty:
             return jsonify([])
