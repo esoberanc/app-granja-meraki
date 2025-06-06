@@ -581,7 +581,7 @@ def consumo_diario():
             return jsonify({"error": "Faltan columnas necesarias"}), 400
 
         df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
-        df = df[df["fecha"] > pd.Timestamp.now() - pd.Timedelta(days=30)]
+        df = df[df["fecha"] > pd.Timestamp.now(tz=timezone.utc) - pd.Timedelta(days=30)]
         df["fecha_dia"] = df["fecha"].dt.date
 
         df["power1"] = pd.to_numeric(df["power1"], errors="coerce").fillna(0)
