@@ -536,7 +536,6 @@ def analisis_solar():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/enviar-informe")
-@login_required
 def enviar_informe():
     try:
         df = obtener_datos_supabase(limit=500)
