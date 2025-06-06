@@ -570,8 +570,7 @@ def enviar_informe():
 @app.route("/api/consumo-diario")
 def consumo_diario():
     try:
-       
-        df = obtener_datos_supabase()
+        df = obtener_datos_supabase(limit=2000)  # Límite alto para cubrir 30 días
 
         if df.empty:
             return jsonify([])
@@ -581,16 +580,13 @@ def consumo_diario():
         if not {"fecha", "power1", "power2"}.issubset(df.columns):
             return jsonify({"error": "Faltan columnas necesarias"}), 400
 
-      #  df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
-        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce").dt.tz_localize(None)
+        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
         df = df[df["fecha"] > pd.Timestamp.now() - pd.Timedelta(days=30)]
-        df["Fecha_dia"] = df["fecha"].dt.date
+        df["fecha_dia"] = df["fecha"].dt.date
 
         df["power1"] = pd.to_numeric(df["power1"], errors="coerce").fillna(0)
         df["power2"] = pd.to_numeric(df["power2"], errors="coerce").fillna(0)
-
         df["watts_totales"] = df["power1"] + df["power2"]
-
 
         df_ordenado = df.sort_values("fecha")
         if len(df_ordenado) < 2:
@@ -602,10 +598,10 @@ def consumo_diario():
 
         df["kwh"] = df["watts_totales"] * frecuencia_seg / 3600000
 
-        consumo_por_dia = df.groupby("Fecha_dia")["kwh"].sum().reset_index()
+        consumo_por_dia = df.groupby("fecha_dia")["kwh"].sum().reset_index()
         consumo_por_dia["kwh"] = consumo_por_dia["kwh"].round(2)
 
-        resultado = consumo_por_dia.rename(columns={"Fecha_dia": "fecha"}).to_dict(orient="records")
+        resultado = consumo_por_dia.rename(columns={"fecha_dia": "fecha"}).to_dict(orient="records")
 
         del df  # liberar memoria
         import gc
