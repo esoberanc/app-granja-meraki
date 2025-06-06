@@ -119,21 +119,21 @@ def get_worksheet():
 
 # def obtener_datos_sheets(limit=500):
     # Leer datos desde Google Sheets
-    sheet = get_worksheet()
-    valores = sheet.get_all_values()
+#    sheet = get_worksheet()
+#    valores = sheet.get_all_values()
 
-    if not valores or len(valores) < 2:
-        return pd.DataFrame()
+#    if not valores or len(valores) < 2:
+#        return pd.DataFrame()
 
-    headers = valores[0]
-    filas = valores[1:]
+#    headers = valores[0]
+#    filas = valores[1:]
 
-    if len(filas) > limit:
-        filas = filas[-limit:]  # solo las últimas 500 filas
+#    if len(filas) > limit:
+#        filas = filas[-limit:]  # solo las últimas 500 filas
 
-    df = pd.DataFrame(filas, columns=headers)
-    df.replace("", pd.NA, inplace=True)
-    return df
+#    df = pd.DataFrame(filas, columns=headers)
+#    df.replace("", pd.NA, inplace=True)
+#    return df
 
 def obtener_datos_supabase(limit=500):
     url = f"{SUPABASE_URL}/rest/v1/lecturas?order=fecha.desc&limit={limit}"
@@ -624,17 +624,18 @@ def consumo_diario():
 
         print("🧪 Columnas detectadas:", df.columns.tolist())
 
-        if not {"Fecha", "MT40 AC RealPo", "MT40 Hum RealPo"}.issubset(df.columns):
+        if not {"Fecha", "power1", "power2"}.issubset(df.columns):
             return jsonify({"error": "Faltan columnas necesarias"}), 400
 
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-        df = df[df["Fecha"] > pd.Timestamp.now() - pd.Timedelta(days=30)]
-        df["Fecha_dia"] = df["Fecha"].dt.date
+        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+        df = df[df["fecha"] > pd.Timestamp.now() - pd.Timedelta(days=30)]
+        df["Fecha_dia"] = df["fecha"].dt.date
 
-        df["MT40 AC RealPo"] = pd.to_numeric(df["MT40 AC RealPo"], errors="coerce").fillna(0)
-        df["MT40 Hum RealPo"] = pd.to_numeric(df["MT40 Hum RealPo"], errors="coerce").fillna(0)
+        df["power1"] = pd.to_numeric(df["power1"], errors="coerce").fillna(0)
+        df["power2"] = pd.to_numeric(df["power2"], errors="coerce").fillna(0)
 
-        df["watts_totales"] = df["MT40 AC RealPo"] + df["MT40 Hum RealPo"]
+        df["watts_totales"] = df["power1"] + df["power2"]
+
 
         df_ordenado = df.sort_values("Fecha")
         if len(df_ordenado) < 2:
