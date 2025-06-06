@@ -135,6 +135,28 @@ def get_worksheet():
     df.replace("", pd.NA, inplace=True)
     return df
 
+def obtener_datos_supabase(limit=500):
+    url = f"{SUPABASE_URL}/rest/v1/lecturas?order=fecha.desc&limit={limit}"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+
+    try:
+        res = requests.get(url, headers=headers)
+        res.raise_for_status()
+        data = res.json()
+        if not data:
+            return pd.DataFrame()
+
+        df = pd.DataFrame(data)
+        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+        df = df.sort_values("fecha")
+
+        return df
+    except Exception as e:
+        print("❌ Error al leer desde Supabase:", e)
+        return pd.DataFrame()
 
 
 def obtener_datos_consumo():
