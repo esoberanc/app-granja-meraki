@@ -615,6 +615,7 @@ def enviar_informe():
 @app.route("/api/consumo-diario")
 def consumo_diario():
     try:
+       # df = obtener_datos_sheets()
         df = obtener_datos_supabase()
 
 
