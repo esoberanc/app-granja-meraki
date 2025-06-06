@@ -581,9 +581,11 @@ def enviar_informe():
         enviar_correo(asunto, mensaje, destinatario)
 
         print("✅ Informe semanal enviado correctamente.")
+        return "✅ Informe enviado correctamente"
+        
     except Exception as e:
         print(f"❌ Error al enviar informe automático: {e}")
-
+        return f"❌ Error al enviar informe: {e}", 500
 
 @app.route("/api/consumo-diario")
 def consumo_diario():
