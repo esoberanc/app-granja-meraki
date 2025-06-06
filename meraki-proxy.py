@@ -627,7 +627,8 @@ def consumo_diario():
         if not {"fecha", "power1", "power2"}.issubset(df.columns):
             return jsonify({"error": "Faltan columnas necesarias"}), 400
 
-        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+      #  df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce").dt.tz_localize(None)
         df = df[df["fecha"] > pd.Timestamp.now() - pd.Timedelta(days=30)]
         df["Fecha_dia"] = df["fecha"].dt.date
 
