@@ -688,7 +688,7 @@ def resumen_ia():
 
         prompt = f"""Actúa como un experto en eficiencia ambiental y energía. Te paso un dataset con variables como temperatura, humedad, ruido, CO2, PM2.5 y consumo eléctrico.
 Tu tarea es analizar las estadísticas, identificar anomalías o valores que se salgan de los rangos ideales, y dar una conclusión clara para el usuario final que opera una granja de insectos tenebrio.
-Sé conciso pero profesional. Aquí están los datos:
+redacta un informe corto para el cliente (máximo 5 líneas) que resuma el estado de su sistema de monitoreo, resaltando anomalías o recomendaciones si las hay,  agrega 5 bullets de plan de acción.. Aquí están los datos:
 
 {descripcion}
 
