@@ -539,51 +539,51 @@ def analisis_solar():
 @login_required
 def enviar_informe():
     try:
-        # Obtener datos de consumo y análisis
-        datos = obtener_datos_consumo()
-        if not datos:
-            return "No se pudieron obtener los datos de consumo", 500
+        df = obtener_datos_supabase(limit=500)
 
-        kwh = datos["kwh"]
-        coste = datos["coste_eur"]
-        ahorro = round(kwh * 12 * 0.25, 2)
-        co2 = round(kwh * 0.5, 2)
-        roi = round((datos["paneles_kw"] * 700) / ahorro, 1) if ahorro else "N/A"
+        if df.empty:
+            print("❌ No se encontraron datos en Supabase.")
+            return
 
-        # Construir cuerpo del correo
-        cuerpo = f"""
-        🔋 Informe energético mensual
+        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+        df = df[df["fecha"] > pd.Timestamp.now() - pd.Timedelta(days=7)]
 
-        ⚡ Consumo mensual: {kwh} kWh
-        💰 Coste estimado: €{coste}
-        ☀️ Recomendación solar: {datos['recomendacion']}
-        💵 Ahorro anual estimado: €{ahorro}
-        🌱 CO₂ evitado mensual: {co2} kg
-        📉 Retorno de inversión estimado: {roi} años
+        # Conversión de columnas numéricas
+        for col in ["sensor1", "sensor2", "sensor1_hum", "sensor2_hum", "power1", "power2"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+        resumen = {
+            "temp_max": df[["sensor1", "sensor2"]].max().max().round(1),
+            "temp_min": df[["sensor1", "sensor2"]].min().min().round(1),
+            "hum_max": df[["sensor1_hum", "sensor2_hum"]].max().max().round(1),
+            "hum_min": df[["sensor1_hum", "sensor2_hum"]].min().min().round(1),
+            "kwh_total": round(((df["power1"] + df["power2"]).fillna(0).sum()) * 60 / 3600 / 1000, 2),
+            "frecuencia_s": 60
+        }
+
+        # Composición del mensaje
+        mensaje = f"""
+        🐛 Informe Semanal - Granja Monitorizada 🐛
+
+        🌡️ Temperatura Máxima: {resumen['temp_max']} °C
+        🌡️ Temperatura Mínima: {resumen['temp_min']} °C
+
+        💧 Humedad Máxima: {resumen['hum_max']} %
+        💧 Humedad Mínima: {resumen['hum_min']} %
+
+        ⚡ Consumo Energético Estimado: {resumen['kwh_total']} kWh
+
+        ⏱ Frecuencia de Muestreo: {resumen['frecuencia_s']} s
         """
 
-        # Configuración de correo
-        remitente = "edu@edgefarming.cat"
-        receptor = "edu@edgefarming.es"
-        password = "ryydfkndhtzmtdwr"
+        asunto = "📊 Informe Semanal - Granja Inteligente"
+        destinatario = os.getenv("EMAIL_DESTINO", "edu@edgefarming.cat")
+        enviar_correo(asunto, mensaje, destinatario)
 
-        msg = MIMEText(cuerpo)
-        msg["Subject"] = "📊 Informe mensual - Granja Tenebrio"
-        msg["From"] = remitente
-        msg["To"] = receptor
-        print("📩 Intentando enviar informe...")
-
-        # Enviar por SMTP (Gmail)
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as servidor:
-            servidor.login(remitente, password)
-            servidor.send_message(msg)
-
-        return "✅ Informe enviado correctamente."
-
+        print("✅ Informe semanal enviado correctamente.")
     except Exception as e:
-        import logging
-        logging.exception("Error al enviar informe")
-        return f"❌ Error al enviar: {str(e)}", 500
+        print(f"❌ Error al enviar informe automático: {e}")
+
 
 @app.route("/api/consumo-diario")
 def consumo_diario():
