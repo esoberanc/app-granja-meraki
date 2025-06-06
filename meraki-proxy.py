@@ -710,7 +710,11 @@ if __name__ == "__main__":
     # Programar envío automático
     scheduler = BackgroundScheduler()
   #  scheduler.add_job(envio_automatico_informe, "cron", day_of_week="mon", hour=8, minute=0)
-    scheduler.add_job(envio_automatico_informe, "interval", minutes=1)
+    def tarea_enviar_informe():
+    with app.app_context():
+        enviar_informe_automatico()
+
+scheduler.add_job(tarea_enviar_informe, "interval", minutes=1)
     scheduler.start()
     print("✅ Scheduler iniciado correctamente")
 
