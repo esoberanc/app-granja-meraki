@@ -694,11 +694,12 @@ Sé conciso pero profesional. Aquí están los datos:
 
 Resumen:"""
 
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-        respuesta = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
+    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    respuesta = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
+)
 
         resumen = respuesta.choices[0].message.content.strip()
         return jsonify({"resumen": resumen})
