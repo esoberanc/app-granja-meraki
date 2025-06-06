@@ -546,7 +546,7 @@ def enviar_informe():
             return
 
         df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
-        df = df[df["fecha"] > pd.Timestamp.now() - pd.Timedelta(days=7)]
+        df = df[df["fecha"] > pd.Timestamp.now(tz=df["fecha"].dt.tz)]
 
         # Conversión de columnas numéricas
         for col in ["sensor1", "sensor2", "sensor1_hum", "sensor2_hum", "power1", "power2"]:
@@ -706,13 +706,15 @@ if __name__ == "__main__":
 
    # Programar envío automático
     scheduler = BackgroundScheduler()
+    scheduler.add_job(tarea_enviar_informe, "interval", minutes=1)
+    scheduler.start()
+    
   #  scheduler.add_job(envio_automatico_informe, "cron", day_of_week="mon", hour=8, minute=0)
     def tarea_enviar_informe():
         with app.app_context():
-            enviar_informe_automatico()
+            enviar_informe()
 
-    scheduler.add_job(tarea_enviar_informe, "interval", minutes=1)
-    scheduler.start()
+    
     print("✅ Scheduler iniciado correctamente")
 
     port = int(os.environ.get("PORT", 5000))
