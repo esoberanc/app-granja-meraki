@@ -624,7 +624,7 @@ def consumo_diario():
 
         print("🧪 Columnas detectadas:", df.columns.tolist())
 
-        if not {"Fecha", "power1", "power2"}.issubset(df.columns):
+        if not {"fecha", "power1", "power2"}.issubset(df.columns):
             return jsonify({"error": "Faltan columnas necesarias"}), 400
 
         df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
@@ -637,11 +637,11 @@ def consumo_diario():
         df["watts_totales"] = df["power1"] + df["power2"]
 
 
-        df_ordenado = df.sort_values("Fecha")
+        df_ordenado = df.sort_values("fecha")
         if len(df_ordenado) < 2:
             frecuencia_seg = 60
         else:
-            tiempos = df_ordenado["Fecha"].astype("int64") // 1_000_000_000
+            tiempos = df_ordenado["fecha"].astype("int64") // 1_000_000_000
             diferencias = tiempos.diff().dropna()
             frecuencia_seg = diferencias.mean()
 
