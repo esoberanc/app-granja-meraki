@@ -591,7 +591,6 @@ def consumo_diario():
        
         df = obtener_datos_supabase()
 
-
         if df.empty:
             return jsonify([])
 
@@ -636,7 +635,6 @@ def consumo_diario():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-
 
 
 @app.route("/api/resumen-ia")
@@ -691,9 +689,6 @@ Resumen:"""
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-
-
-    
 def iniciar_monitoreo_automatico():
     def loop():
         with app.app_context():
@@ -718,8 +713,7 @@ if __name__ == "__main__":
     with app.app_context():
         enviar_informe_automatico()
 
-scheduler.add_job(tarea_enviar_informe, "interval", minutes=1)
-
+    scheduler.add_job(tarea_enviar_informe, "interval", minutes=1)
     scheduler.start()
     print("✅ Scheduler iniciado correctamente")
 
