@@ -65,18 +65,37 @@ def load_user(user_id):
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        email = request.form["email"]
+        username = request.form["username"]
         password = request.form["password"]
-        accept = request.form.get("accept")
-        
-        if not accept:
-            return "Debes aceptar la política de privacidad", 400
+        aceptar_politica = request.form.get("aceptar_politica")
 
-        password_hash = generate_password_hash(password)
-        supabase.table("usuarios").insert({"email": email, "password": password_hash}).execute()
+        if not aceptar_politica:
+            return "Debes aceptar la política de privacidad para continuar.", 400
+
+        hashed_password = generate_password_hash(password)
+        nuevo_usuario = {
+            "id": str(uuid.uuid4()),
+            "username": username,
+            "password": hashed_password
+        }
+
+        # Cargar usuarios actuales
+        if os.path.exists("users.json"):
+            with open("users.json", "r") as f:
+                usuarios = json.load(f)
+        else:
+            usuarios = []
+
+        usuarios.append(nuevo_usuario)
+
+        with open("users.json", "w") as f:
+            json.dump(usuarios, f, indent=4)
+
         return redirect(url_for("login"))
-    
+
     return render_template("register.html")
+
+
 
 @app.route("/")
 @login_required
