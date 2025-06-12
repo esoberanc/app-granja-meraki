@@ -153,23 +153,48 @@ def get_worksheet():
     return client.open_by_key(SPREADSHEET_ID).worksheet("Hoja1")
 
 
-# def obtener_datos_sheets(limit=500):
-    # Leer datos desde Google Sheets
-#    sheet = get_worksheet()
-#    valores = sheet.get_all_values()
+def obtener_usuario_supabase(username):
+    url = f"{SUPABASE_URL}/rest/v1/usuarios?username=eq.{username}"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
 
-#    if not valores or len(valores) < 2:
-#        return pd.DataFrame()
+    try:
+        res = requests.get(url, headers=headers)
+        res.raise_for_status()
+        data = res.json()
+        return data[0] if data else None
+    except Exception as e:
+        print(f"❌ Error al obtener usuario desde Supabase: {e}")
+        return None
 
-#    headers = valores[0]
-#    filas = valores[1:]
+def registrar_usuario_supabase(username, password):
+    from werkzeug.security import generate_password_hash
+    hashed_password = generate_password_hash(password)
 
-#    if len(filas) > limit:
-#        filas = filas[-limit:]  # solo las últimas 500 filas
+    payload = {
+        "username": username,
+        "password": hashed_password
+    }
 
-#    df = pd.DataFrame(filas, columns=headers)
-#    df.replace("", pd.NA, inplace=True)
-#    return df
+    url = f"{SUPABASE_URL}/rest/v1/usuarios"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+    }
+
+    try:
+        res = requests.post(url, headers=headers, json=payload)
+        res.raise_for_status()
+        print("✅ Usuario registrado en Supabase")
+        return True
+    except Exception as e:
+        print(f"❌ Error al registrar usuario: {e}")
+        return False
+
 
 def obtener_datos_supabase(limit=500):
     url = f"{SUPABASE_URL}/rest/v1/lecturas?order=fecha.desc&limit={limit}"
