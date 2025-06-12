@@ -62,6 +62,22 @@ with open("users.json") as f:
 def load_user(user_id):
     return next((u for u in usuarios if u.id == int(user_id)), None)
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
+        accept = request.form.get("accept")
+        
+        if not accept:
+            return "Debes aceptar la política de privacidad", 400
+
+        password_hash = generate_password_hash(password)
+        supabase.table("usuarios").insert({"email": email, "password": password_hash}).execute()
+        return redirect(url_for("login"))
+    
+    return render_template("register.html")
+
 @app.route("/")
 @login_required
 def home():
