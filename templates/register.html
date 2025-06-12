@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro - CoreCare</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-center">📝 Crear una cuenta</h2>
+
+    <form method="POST" action="/register">
+      <div class="mb-4">
+        <label for="username" class="block font-semibold mb-1">Usuario</label>
+        <input type="text" id="username" name="username" required class="w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="block font-semibold mb-1">Contraseña</label>
+        <input type="password" id="password" name="password" required class="w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+
+      <div class="mb-4">
+        <label class="inline-flex items-center">
+          <input type="checkbox" name="aceptar_politica" required class="mr-2">
+          He leído y acepto la 
+          <a href="/politica-privacidad" target="_blank" class="text-blue-600 underline ml-1">Política de Privacidad</a> y los 
+          <a href="/terminos-condiciones" target="_blank" class="text-blue-600 underline ml-1">Términos y Condiciones</a>.
+        </label>
+      </div>
+
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded w-full">
+        Crear cuenta
+      </button>
+    </form>
+
+    <p class="mt-4 text-center text-sm text-gray-600">
+      ¿Ya tienes cuenta? <a href="/login" class="text-blue-600 underline">Inicia sesión</a>
+    </p>
+  </div>
+</body>
+</html>
