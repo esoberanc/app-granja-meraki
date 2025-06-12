@@ -108,12 +108,14 @@
 
     <!-- Gráficas -->
     <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
        <!-- Gráfica de consumo diario -->
 <div class="bg-white p-4 rounded-lg shadow">
   <h2 class="text-xl font-bold mb-4">📊 Consumo Diario</h2>
   <canvas id="graficoConsumo" class="w-full h-64"></canvas>
-
 </div>
+
+      <!-- Gráfica de análisis solar -->
       <div class="bg-white p-4 rounded-lg shadow mt-6">
   <h2 class="text-xl font-bold mb-4">☀️ Análisis Solar</h2>
   <canvas id="graficoSolar" class="w-full h-64"></canvas>
@@ -204,10 +206,6 @@ if (data.puerta1.toLowerCase() === "open") {
 }
 
 
-
-
-
-
   } catch (error) {
     console.error("❌ Error cargando sensores:", error);
   }
@@ -224,8 +222,45 @@ cargarSensores();
 
 <script>
   async function cargarGraficoConsumo() {
-    // ya lo tienes
+  try {
+    const res = await fetch("/api/consumo-diario");
+    const datos = await res.json();
+
+    const labels = datos.map(d => new Date(d.fecha).toISOString().split('T')[0]);
+    const valores = datos.map(d => d.kwh);
+
+    const canvas = document.getElementById("graficoConsumo");
+    if (!canvas) {
+      console.error("❌ No se encontró el canvas con ID 'graficoConsumo'");
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Consumo (kWh)",
+          data: valores,
+          borderColor: "#3b82f6",
+          backgroundColor: "rgba(59, 130, 246, 0.2)",
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: true }
+        }
+      }
+    });
+  } catch (e) {
+    console.error("❌ Error al cargar gráfica de consumo:", e);
   }
+}
+
+
 
   async function cargarGraficoSolar() {
     try {
