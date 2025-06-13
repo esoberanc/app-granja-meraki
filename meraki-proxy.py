@@ -117,15 +117,25 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        usuario = obtener_usuario_supabase(username)
-        if usuario and check_password_hash(usuario["password"], password):
-            user_obj = User(username)
-            login_user(user_obj)
-            flash("Login exitoso", "success")
-            return redirect(url_for("index"))
-        else:
-            flash("Usuario o contraseña incorrectos", "danger")
+        print(f"Intentando login con: {username}")
 
+        # Consultar Supabase
+        response = supabase.table("usuarios").select("*").eq("username", username).execute()
+
+        if response.data:
+            user = response.data[0]
+            print(f"Usuario encontrado: {user}")
+            if check_password_hash(user["password"], password):
+                user_obj = User(user["username"])
+                login_user(user_obj)
+                print("✅ Login exitoso")
+                return redirect(url_for("panel"))
+            else:
+                print("❌ Contraseña incorrecta")
+        else:
+            print("❌ Usuario no encontrado")
+
+        return render_template("login.html", error="Usuario o contraseña incorrectos")
     return render_template("login.html")
 
 
