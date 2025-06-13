@@ -57,13 +57,12 @@ class Usuario(UserMixin):
         self.username = username
         self.password = password
 
-with open("users.json") as f:
-    usuarios_json = json.load(f)
-    usuarios = [Usuario(i, u["username"], u["password"]) for i, u in enumerate(usuarios_json)]
-
 @login_manager.user_loader
 def load_user(user_id):
-    return next((u for u in usuarios if u.id == int(user_id)), None)
+    user_data = obtener_usuario_supabase(user_id)
+    if user_data:
+        return User(user_data["username"])
+    return None
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -295,48 +294,7 @@ def guardar_en_supabase(data):
         print(f"❌ Error al guardar en Supabase: {e}")
 
 
-def guardar_en_sheets(sensor_data):
-    try:
-        creds = service_account.Credentials.from_service_account_file(
-            "/etc/secrets/credentials.json",
-            scopes=['https://www.googleapis.com/auth/spreadsheets']
-        )
-        service = build('sheets', 'v4', credentials=creds)
-        sheet = service.spreadsheets()
 
-        fila = [
-            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            sensor_data.get("sensor1"),
-            sensor_data.get("sensor2"),
-            sensor_data.get("sensor1_humidity"),
-            sensor_data.get("sensor2_humidity"),
-            sensor_data.get("multi1_temp"),
-            sensor_data.get("multi1_co2"),
-            sensor_data.get("multi1_pm25"),
-            sensor_data.get("multi1_noise"),
-            sensor_data.get("puerta1"),
-            sensor_data.get("power1"),
-            sensor_data.get("power2"),
-            sensor_data.get("powerFactor1"),
-            sensor_data.get("powerFactor2"),
-            sensor_data.get("apparentPower1"),
-            sensor_data.get("apparentPower2"),
-            sensor_data.get("voltage1"),
-            sensor_data.get("voltage2"),
-            sensor_data.get("current1"),
-            sensor_data.get("current2"),
-            sensor_data.get("frequency1"),
-            sensor_data.get("frequency2"),
-        ]
-        body = {'values': [fila]}
-        sheet.values().append(
-            spreadsheetId=SPREADSHEET_ID,
-            range='Hoja1!A1',
-            valueInputOption='RAW',
-            body=body
-        ).execute()
-    except Exception as e:
-        print("❌ Error al guardar en Sheets:", e)
 
 def envio_automatico_informe():
     try:
