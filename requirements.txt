@@ -10,4 +10,4 @@ openai
 gspread
 apscheduler
 python-dotenv
-supabase-py
+supabase
