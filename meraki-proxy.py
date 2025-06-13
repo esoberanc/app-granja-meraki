@@ -20,6 +20,7 @@ from email.mime.text import MIMEText
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash
+from supabase import create_client
 load_dotenv()
 
 class User(UserMixin):
@@ -41,6 +42,9 @@ ORGANIZATION_ID = "1654515"
 SPREADSHEET_ID = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 
 SENSORS = {
     "sensor1": "Q3CA-AT85-YJMB",
