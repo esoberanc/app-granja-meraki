@@ -19,9 +19,12 @@ import smtplib
 from email.mime.text import MIMEText
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
+from werkzeug.security import check_password_hash
 load_dotenv()
 
-
+class User(UserMixin):
+    def __init__(self, username):
+        self.id = username
 
 
 
@@ -67,34 +70,19 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        aceptar_politica = request.form.get("aceptar_politica")
 
-        if not aceptar_politica:
-            return "Debes aceptar la política de privacidad para continuar.", 400
+        # Verificar si ya existe
+        if obtener_usuario_supabase(username):
+            flash("El usuario ya existe", "warning")
+            return redirect(url_for("register"))
 
-        hashed_password = generate_password_hash(password)
-        nuevo_usuario = {
-            "id": str(uuid.uuid4()),
-            "username": username,
-            "password": hashed_password
-        }
-
-        # Cargar usuarios actuales
-        if os.path.exists("users.json"):
-            with open("users.json", "r") as f:
-                usuarios = json.load(f)
+        if registrar_usuario_supabase(username, password):
+            flash("Registro exitoso. Ahora puedes iniciar sesión.", "success")
+            return redirect(url_for("login"))
         else:
-            usuarios = []
-
-        usuarios.append(nuevo_usuario)
-
-        with open("users.json", "w") as f:
-            json.dump(usuarios, f, indent=4)
-
-        return redirect(url_for("login"))
+            flash("Error al registrar el usuario", "danger")
 
     return render_template("register.html")
-
 
 
 @app.route("/")
@@ -129,13 +117,18 @@ def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        user = next((u for u in usuarios if u.username == username and u.password == password), None)
-        if user:
-            login_user(user)
-            return redirect(url_for("home"))
-        return "❌ Usuario o contraseña incorrectos", 401
+
+        usuario = obtener_usuario_supabase(username)
+        if usuario and check_password_hash(usuario["password"], password):
+            user_obj = User(username)
+            login_user(user_obj)
+            flash("Login exitoso", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("Usuario o contraseña incorrectos", "danger")
 
     return render_template("login.html")
+
 
 
 @app.route("/logout")
