@@ -23,9 +23,10 @@ from werkzeug.security import check_password_hash
 from supabase import create_client
 load_dotenv()
 
-class User(UserMixin):
-    def __init__(self, username):
-        self.id = username
+class Usuario(UserMixin):
+    def __init__(self, id, username):
+        self.id = id
+        self.username = username
 
 
 
@@ -130,7 +131,7 @@ def login():
             user = response.data[0]
             print(f"Usuario encontrado: {user}")
             if check_password_hash(user["password"], password):
-                user_obj = User(user["username"])
+                user_obj = Usuario(user["id"], user["username"])
                 login_user(user_obj)
                 print("✅ Login exitoso")
                 return redirect(url_for("home"))
