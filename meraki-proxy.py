@@ -133,7 +133,7 @@ def login():
                 user_obj = User(user["username"])
                 login_user(user_obj)
                 print("✅ Login exitoso")
-                return redirect(url_for("panel"))
+                return redirect(url_for("home"))
             else:
                 print("❌ Contraseña incorrecta")
         else:
