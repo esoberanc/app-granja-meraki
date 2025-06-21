@@ -66,7 +66,7 @@ class Usuario(UserMixin):
 def load_user(user_id):
     user_data = obtener_usuario_supabase(user_id)
     if user_data:
-        return Usuario(user_data["id"], user_data["username"])
+        return Usuario(user_data["id"], user_data["username"], user_data["password"])
     return None
 
 @app.route("/register", methods=["GET", "POST"])
