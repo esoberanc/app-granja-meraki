@@ -23,13 +23,6 @@ from werkzeug.security import check_password_hash
 from supabase import create_client
 load_dotenv()
 
-class Usuario(UserMixin):
-    def __init__(self, id, username):
-        self.id = id
-        self.username = username
-
-
-
 app = Flask(__name__)
 app.secret_key = "clave-secreta-super-segura"  # para sesiones
 login_manager = LoginManager()
