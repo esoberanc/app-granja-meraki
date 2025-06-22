@@ -57,7 +57,7 @@ class Usuario(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    user_data = obtener_usuario_supabase(user_id)
+    user_data = obtener_usuario_supabase(user_id, campo="id")
     if user_data:
         return Usuario(user_data["id"], user_data["username"], user_data["password"])
     return None
@@ -154,8 +154,8 @@ def get_worksheet():
     return client.open_by_key(SPREADSHEET_ID).worksheet("Hoja1")
 
 
-def obtener_usuario_supabase(username):
-    url = f"{SUPABASE_URL}/rest/v1/usuarios?username=eq.{username}"
+def obtener_usuario_supabase(valor, campo="username"):
+    url = f"{SUPABASE_URL}/rest/v1/usuarios?{campo}=eq.{valor}"
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}"
