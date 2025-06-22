@@ -62,6 +62,30 @@ def load_user(user_id):
         return Usuario(user_data["id"], user_data["username"], user_data["password"])
     return None
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+
+def enviar_correo(destinatario, asunto, cuerpo):
+    remitente = os.getenv("EMAIL_REMITENTE")
+    password = os.getenv("SMTP_PASSWORD")
+
+    msg = MIMEMultipart()
+    msg["From"] = remitente
+    msg["To"] = destinatario
+    msg["Subject"] = asunto
+    msg.attach(MIMEText(cuerpo, "plain"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(remitente, password)
+            server.send_message(msg)
+        print(f"📤 Correo enviado correctamente a {destinatario}")
+    except Exception as e:
+        print(f"❌ Error al enviar correo: {e}")
+
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -219,6 +243,27 @@ def obtener_datos_supabase(limit=500):
     except Exception as e:
         print("❌ Error al leer desde Supabase:", e)
         return pd.DataFrame()
+
+def enviar_correo(asunto, mensaje, destinatario):
+    remitente = os.getenv("EMAIL_REMITENTE", "edu@edgefarming.cat")
+    password = os.getenv("SMTP_PASSWORD", "")
+
+    try:
+        msg = MIMEText(mensaje, "plain")
+        msg["Subject"] = asunto
+        msg["From"] = remitente
+        msg["To"] = destinatario
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(remitente, password)
+            server.send_message(msg)
+
+        print("📤 Correo enviado correctamente a", destinatario)
+        return True
+    except Exception as e:
+        print("❌ Error al enviar correo:", e)
+        return False
 
 
 def obtener_datos_consumo():
@@ -661,7 +706,7 @@ def resumen_ia():
         descripcion = df.describe().to_string()
 
         prompt = f"""Actúa como un experto en eficiencia ambiental y energía. Te paso un dataset con variables como temperatura, humedad, ruido, CO2, PM2.5 y consumo eléctrico.
-Tu tarea es analizar las estadísticas, identificar anomalías o valores que se salgan de los rangos ideales, y dar una conclusión clara para el usuario final que opera una granja de insectos tenebrio.
+Tu tarea es analizar las estadísticas, identificar anomalías o valores que se salgan de los rangos ideales, y dar una conclusión clara para el usuario final que opera una granja de insectos tenebrio obre cada variable.
 redacta un informe corto para el cliente (máximo 5 líneas) que resuma el estado de su sistema de monitoreo, resaltando anomalías o recomendaciones si las hay,  agrega 5 bullets de plan de acción.. Aquí están los datos:
 
 {descripcion}
