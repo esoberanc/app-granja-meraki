@@ -597,7 +597,7 @@ def enviar_informe():
             return "No hay datos suficientes para generar el informe."
 
         df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
-        df = df[df["fecha"] > pd.Timestamp.now() - pd.Timedelta(days=7)]
+        df = df[df["fecha"] > pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=7)]
 
         for col in ["sensor1", "sensor2", "sensor1_hum", "sensor2_hum", "multi1_temp", "multi1_co2", "multi1_pm25", "multi1_noise", "puerta", "power1", "power2"]:
             df[col] = pd.to_numeric(df[col], errors="coerce")
