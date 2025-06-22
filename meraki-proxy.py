@@ -750,18 +750,10 @@ def iniciar_monitoreo_automatico():
 if __name__ == "__main__":
     iniciar_monitoreo_automatico()
 
-    def tarea_enviar_informe():
-        with app.app_context():
-            enviar_informe()
-
    # Programar envío automático
     scheduler = BackgroundScheduler()
-    scheduler.add_job(tarea_enviar_informe, "interval", minutes=1)
+    scheduler.add_job(envio_automatico_informe, "cron", day_of_week="mon", hour=8, minute=0)
     scheduler.start()
-    
-  #  scheduler.add_job(envio_automatico_informe, "cron", day_of_week="mon", hour=8, minute=0)
-   
-
     
     print("✅ Scheduler iniciado correctamente")
 
