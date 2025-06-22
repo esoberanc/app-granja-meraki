@@ -528,26 +528,27 @@ def calcular_consumo_mensual():
 @app.route("/api/analisis-solar")
 def analisis_solar():
     try:
-        df = obtener_datos_supabase(limit=1000)
+        df = obtener_datos_supabase(limit=2000)
 
         if df.empty or "fecha" not in df.columns or "power1" not in df.columns or "power2" not in df.columns:
             return jsonify({"error": "Faltan columnas necesarias"}), 400
 
         df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
-        now = pd.Timestamp.now(tz="UTC")
-        df = df[(df["fecha"].dt.month == now.month) & (df["fecha"].dt.year == now.year)]
+        df = df[df["fecha"].dt.month == pd.Timestamp.now().month]
+        df = df[df["fecha"].dt.year == pd.Timestamp.now().year]
 
         df["power1"] = pd.to_numeric(df["power1"], errors="coerce").fillna(0)
         df["power2"] = pd.to_numeric(df["power2"], errors="coerce").fillna(0)
         df["watts"] = df["power1"] + df["power2"]
 
-        frecuencia_s = 60  # Ajusta si tienes otra frecuencia real
+        frecuencia_s = 60
         total_wh = df["watts"].sum() * (frecuencia_s / 3600)
         total_kwh = round(total_wh / 1000, 2)
-        coste = round(total_kwh * 0.25, 2)
+        coste_actual = round(total_kwh * 0.25, 2)
 
+        coste_panel_kw = 900  # en euros por kW
         estacion = "primavera"
-        mes = now.month
+        mes = pd.Timestamp.now().month
         if mes in [12, 1, 2]: estacion = "invierno"
         elif mes in [3, 4, 5]: estacion = "primavera"
         elif mes in [6, 7, 8]: estacion = "verano"
@@ -556,18 +557,40 @@ def analisis_solar():
         horas_solares = {"invierno": 2.5, "primavera": 4.5, "verano": 5.5, "otonio": 3.5}
         hs = horas_solares[estacion]
         paneles_kw = round(total_kwh / (30 * hs), 2)
+        coste_paneles = round(paneles_kw * coste_panel_kw)
+
+        ahorro_anual = round(total_kwh * 12 * 0.25, 2)
+        roi = round(coste_paneles / ahorro_anual, 1) if ahorro_anual > 0 else None
+
+        co2_por_kwh = 0.25  # kg CO₂ por kWh
+        co2_mensual = round(total_kwh * co2_por_kwh, 2)
+        co2_anual = round(co2_mensual * 12, 2)
+        arboles_equivalente = round(co2_anual / 21)  # aprox 21 kg CO₂ por árbol/año
+
+        paneles_por_estacion = {
+            est: round(total_kwh / (30 * h), 2)
+            for est, h in horas_solares.items()
+        }
 
         return jsonify({
             "kwh": total_kwh,
-            "coste_eur": coste,
+            "coste_eur": coste_actual,
             "estacion": estacion,
             "horas_solares": hs,
             "paneles_kw": paneles_kw,
-            "frecuencia_s": frecuencia_s,
-            "recomendacion": f"Paneles de {paneles_kw} kW funcionando {hs} h/día compensan el consumo mensual."
+            "coste_paneles": coste_paneles,
+            "ahorro_anual_eur": ahorro_anual,
+            "roi_anios": roi,
+            "co2_mensual": co2_mensual,
+            "co2_anual": co2_anual,
+            "equivalente_arboles": arboles_equivalente,
+            "paneles_por_estacion": paneles_por_estacion,
+            "recomendacion": f"Paneles de {paneles_kw} kW en {estacion} compensarían tu consumo mensual."
         })
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 
