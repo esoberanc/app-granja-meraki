@@ -605,7 +605,7 @@ def enviar_informe():
             "frecuencia_s": 60
         }
 
-        logo_url = "https://storage.googleapis.com/edgefarming-static/Logo%20EF%20Principal.png"
+        logo_url = "https://drive.google.com/drive/u/0/folders/1GYkURljXgAZS_DoOvGWPkwf2kxmZoWbp"
 
         mensaje = f"""
         <div style="font-family: Arial, sans-serif; color: #333;">
