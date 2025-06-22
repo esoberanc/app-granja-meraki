@@ -131,10 +131,10 @@ def login():
                 return redirect(url_for("home"))
             else:
                 print("❌ Contraseña incorrecta")
+                return render_template("login.html", error="Usuario o contraseña incorrectos")
         else:
             print("❌ Usuario no encontrado")
-
-        return render_template("login.html", error="Usuario o contraseña incorrectos")
+            return render_template("login.html", error="Usuario o contraseña incorrectos")
     return render_template("login.html")
 
 
