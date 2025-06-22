@@ -596,7 +596,8 @@ def enviar_informe():
             return
 
         df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
-        df = df[df["fecha"] > pd.Timestamp.now(tz=df["fecha"].dt.tz)]
+        hace_7_dias = pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=7)
+        df = df[df["fecha"] > hace_7_dias]
 
         # Conversión de columnas numéricas
         for col in ["sensor1", "sensor2", "sensor1_hum", "sensor2_hum", "power1", "power2"]:
