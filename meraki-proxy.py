@@ -124,8 +124,8 @@ def login():
             user = response.data[0]
             print(f"Usuario encontrado: {user}")
             if check_password_hash(user["password"], password):
+                print("✅ Contraseña verificada correctamente")  # <-- Esta línea nueva
                 user_obj = Usuario(user["id"], user["username"], user["password"])
-
                 login_user(user_obj)
                 print("✅ Login exitoso")
                 return redirect(url_for("home"))
