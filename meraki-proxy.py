@@ -650,7 +650,6 @@ def enviar_informe():
         return "Informe enviado correctamente"
     except Exception as e:
         return f"<pre>{str(e)}</pre>"
-        except
 
 
 @app.route("/api/consumo-diario")
