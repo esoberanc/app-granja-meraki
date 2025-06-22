@@ -649,8 +649,8 @@ def enviar_informe():
         print("✅ Informe semanal enviado correctamente.")
         return "Informe enviado correctamente"
     except Exception as e:
-        print(f"❌ Error al enviar informe automático: {e}")
-        return "Ocurrió un error al enviar el informe"
+    return f"<pre>{str(e)}</pre>"
+    except
 
 
 @app.route("/api/consumo-diario")
