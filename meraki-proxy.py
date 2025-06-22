@@ -67,23 +67,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 
-def enviar_correo(destinatario, asunto, cuerpo):
-    remitente = os.getenv("EMAIL_REMITENTE")
-    password = os.getenv("SMTP_PASSWORD")
-
-    msg = MIMEMultipart()
-    msg["From"] = remitente
-    msg["To"] = destinatario
-    msg["Subject"] = asunto
-    msg.attach(MIMEText(cuerpo, "plain"))
-
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(remitente, password)
-            server.send_message(msg)
-        print(f"📤 Correo enviado correctamente a {destinatario}")
-    except Exception as e:
-        print(f"❌ Error al enviar correo: {e}")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -244,12 +227,13 @@ def obtener_datos_supabase(limit=500):
         print("❌ Error al leer desde Supabase:", e)
         return pd.DataFrame()
 
-def enviar_correo(asunto, mensaje, destinatario):
+def enviar_correo(asunto, mensaje, destinatario, html=False):
     remitente = os.getenv("EMAIL_REMITENTE", "edu@edgefarming.cat")
     password = os.getenv("SMTP_PASSWORD", "")
 
     try:
-        msg = MIMEText(mensaje, "plain")
+        mime_type = "html" if html else "plain"
+        msg = MIMEText(mensaje, mime_type)
         msg["Subject"] = asunto
         msg["From"] = remitente
         msg["To"] = destinatario
@@ -264,6 +248,7 @@ def enviar_correo(asunto, mensaje, destinatario):
     except Exception as e:
         print("❌ Error al enviar correo:", e)
         return False
+
 
 
 def obtener_datos_consumo():
