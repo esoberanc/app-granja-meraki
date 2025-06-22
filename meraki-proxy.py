@@ -649,7 +649,7 @@ def enviar_informe():
         print("✅ Informe semanal enviado correctamente.")
         return "Informe enviado correctamente"
     except Exception as e:
-    return f"<pre>{str(e)}</pre>"
+        return f"<pre>{str(e)}</pre>"
     except
 
 
