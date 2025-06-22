@@ -587,56 +587,71 @@ def analisis_solar():
 
 
 @app.route("/enviar-informe")
+@login_required
 def enviar_informe():
     try:
-        df = obtener_datos_supabase(limit=500)
+        df = obtener_datos_supabase(limit=1000)
 
         if df.empty:
             print("❌ No se encontraron datos en Supabase.")
-            return
+            return "No hay datos suficientes para generar el informe."
 
         df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
-        hace_7_dias = pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=7)
-        df = df[df["fecha"] > hace_7_dias]
+        df = df[df["fecha"] > pd.Timestamp.now() - pd.Timedelta(days=7)]
 
-        # Conversión de columnas numéricas
-        for col in ["sensor1", "sensor2", "sensor1_hum", "sensor2_hum", "power1", "power2"]:
+        for col in ["sensor1", "sensor2", "sensor1_hum", "sensor2_hum", "multi1_co2", "multi1_pm25", "multi1_noise", "power1", "power2"]:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
         resumen = {
-            "temp_max": df[["sensor1", "sensor2"]].max().max().round(1),
-            "temp_min": df[["sensor1", "sensor2"]].min().min().round(1),
-            "hum_max": df[["sensor1_hum", "sensor2_hum"]].max().max().round(1),
-            "hum_min": df[["sensor1_hum", "sensor2_hum"]].min().min().round(1),
+            "temp1_max": df["sensor1"].max().round(1),
+            "temp1_min": df["sensor1"].min().round(1),
+            "temp2_max": df["sensor2"].max().round(1),
+            "temp2_min": df["sensor2"].min().round(1),
+            "hum1_max": df["sensor1_hum"].max().round(1),
+            "hum1_min": df["sensor1_hum"].min().round(1),
+            "hum2_max": df["sensor2_hum"].max().round(1),
+            "hum2_min": df["sensor2_hum"].min().round(1),
+            "co2_avg": df["multi1_co2"].mean().round(0),
+            "pm25_avg": df["multi1_pm25"].mean().round(0),
+            "noise_avg": df["multi1_noise"].mean().round(0),
+            "puerta_frec": df["puerta"].mode()[0] if not df["puerta"].mode().empty else "N/A",
+            "power_avg": (df["power1"].fillna(0) + df["power2"].fillna(0)).mean().round(1),
             "kwh_total": round(((df["power1"] + df["power2"]).fillna(0).sum()) * 60 / 3600 / 1000, 2),
             "frecuencia_s": 60
         }
 
-        # Composición del mensaje
+        logo_url = "https://storage.googleapis.com/edgefarming-static/Logo%20EF%20Principal.png"
+
         mensaje = f"""
-        🐛 Informe Semanal - Granja Monitorizada 🐛
-
-        🌡️ Temperatura Máxima: {resumen['temp_max']} °C
-        🌡️ Temperatura Mínima: {resumen['temp_min']} °C
-
-        💧 Humedad Máxima: {resumen['hum_max']} %
-        💧 Humedad Mínima: {resumen['hum_min']} %
-
-        ⚡ Consumo Energético Estimado: {resumen['kwh_total']} kWh
-
-        ⏱ Frecuencia de Muestreo: {resumen['frecuencia_s']} s
+        <div style="font-family: Arial, sans-serif; color: #333;">
+        <img src="{logo_url}" alt="Logo" style="max-height: 80px;"><br><br>
+        <h2>🐛 Informe Semanal - Granja Monitorizada</h2>
+        <ul>
+        <li><strong>🌡️ Temp Sensor 1:</strong> máx {resumen['temp1_max']} °C | mín {resumen['temp1_min']} °C</li>
+        <li><strong>🌡️ Temp Sensor 2:</strong> máx {resumen['temp2_max']} °C | mín {resumen['temp2_min']} °C</li>
+        <li><strong>💧 Hum Sensor 1:</strong> máx {resumen['hum1_max']} % | mín {resumen['hum1_min']} %</li>
+        <li><strong>💧 Hum Sensor 2:</strong> máx {resumen['hum2_max']} % | mín {resumen['hum2_min']} %</li>
+        <li><strong>🟢 CO₂ Promedio:</strong> {resumen['co2_avg']} ppm</li>
+        <li><strong>🌫️ PM2.5 Promedio:</strong> {resumen['pm25_avg']} µg/m³</li>
+        <li><strong>🔊 Ruido Promedio:</strong> {resumen['noise_avg']} dB</li>
+        <li><strong>🚪 Puerta:</strong> estado más frecuente: {resumen['puerta_frec']}</li>
+        <li><strong>⚡ Potencia Promedio:</strong> {resumen['power_avg']} W</li>
+        <li><strong>⚡ Consumo Total Estimado:</strong> {resumen['kwh_total']} kWh</li>
+        <li><strong>⏱ Frecuencia de Muestreo:</strong> {resumen['frecuencia_s']} s</li>
+        </ul>
+        </div>
         """
 
         asunto = "📊 Informe Semanal - Granja Inteligente"
         destinatario = os.getenv("EMAIL_DESTINO", "edu@edgefarming.cat")
-        enviar_correo(asunto, mensaje, destinatario)
+        enviar_correo(asunto, mensaje, destinatario, html=True)
 
         print("✅ Informe semanal enviado correctamente.")
-        return "✅ Informe enviado correctamente"
-        
+        return "Informe enviado correctamente"
     except Exception as e:
         print(f"❌ Error al enviar informe automático: {e}")
-        return f"❌ Error al enviar informe: {e}", 500
+        return "Ocurrió un error al enviar el informe"
+
 
 @app.route("/api/consumo-diario")
 def consumo_diario():
