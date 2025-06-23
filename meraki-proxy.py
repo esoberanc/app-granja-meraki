@@ -5,12 +5,9 @@ import requests
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 import os
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 import threading
 import time
 import openai
-import gspread
 import pandas as pd
 from openai import OpenAI
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin, current_user
@@ -151,15 +148,6 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("login"))
-
-def get_worksheet():
-    creds = service_account.Credentials.from_service_account_file(
-        "/etc/secrets/credentials.json",
-        scopes=["https://www.googleapis.com/auth/spreadsheets"]
-    )
-    client = gspread.authorize(creds)
-    return client.open_by_key(SPREADSHEET_ID).worksheet("Hoja1")
-
 
 def obtener_usuario_supabase(valor, campo="username"):
     url = f"{SUPABASE_URL}/rest/v1/usuarios?{campo}=eq.{valor}"
@@ -341,41 +329,6 @@ def envio_automatico_informe():
             enviar_informe()
     except Exception as e:
         print(f"❌ Error al enviar informe automático: {e}")
-
-@app.route("/api/frecuencia-muestreo")
-def calcular_frecuencia_muestreo():
-    try:
-        cred_path = "/etc/secrets/credentials.json"
-        spreadsheet_id = "1tNx0hjnQzdUKoBvTmIsb9y3PaL3GYYNF3_bMDIIfgRA"
-        range_name = "Hoja1!A2:A300"  # Solo fechas, hasta 300 registros
-
-        credentials = service_account.Credentials.from_service_account_file(
-            cred_path, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
-        )
-        service = build("sheets", "v4", credentials=credentials)
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
-        values = result.get("values", [])
-
-        if not values or len(values) < 2:
-            return jsonify({"error": "No hay suficientes datos para calcular la frecuencia."})
-
-        fechas = pd.to_datetime([fila[0] for fila in values if fila], errors="coerce")
-        fechas = fechas.dropna().sort_values()
-
-        if len(fechas) < 2:
-            return jsonify({"error": "No hay suficientes fechas válidas."})
-
-        intervalos = [(fechas[i] - fechas[i - 1]).total_seconds() for i in range(1, len(fechas))]
-        promedio_segundos = round(sum(intervalos) / len(intervalos), 2)
-
-        return jsonify({"frecuencia_media_segundos": promedio_segundos})
-
-    except Exception as e:
-        import logging
-        logging.exception("Error en /api/frecuencia-muestreo")
-        return jsonify({"error": str(e)}), 500
-       
 
 @app.route("/sensor-data")
 def obtener_datos_y_guardar():
