@@ -728,13 +728,29 @@ def resumen_ia():
         # Estadísticas para IA
         descripcion = df.describe().to_string()
 
-        prompt = f"""Actúa como un experto en eficiencia ambiental y energía. Te paso un dataset con variables como temperatura, humedad, ruido, CO2, PM2.5 y consumo eléctrico.
-Tu tarea es analizar las estadísticas, identificar anomalías o valores que se salgan de los rangos ideales, y dar una conclusión clara para el usuario final que opera una granja de insectos tenebrio obre cada variable.
-redacta un informe corto para el cliente (máximo 5 líneas) que resuma el estado de su sistema de monitoreo, resaltando anomalías o recomendaciones si las hay,  agrega 5 bullets de plan de acción.. Aquí están los datos:
+        prompt = f"""Actúa como un experto en eficiencia ambiental aplicada a la cría de tenebrios. Estás analizando datos sensorizados de los últimos 15 días en una granja automatizada. 
 
-{descripcion}
+Tus tareas son:
 
-Resumen:"""
+1. Detectar patrones o anomalías en temperatura, humedad, calidad del aire (CO₂ y PM2.5), ruido ambiental, consumo eléctrico y apertura de puertas.
+2. Evaluar si las condiciones están dentro de los rangos ideales para maximizar la producción de tenebrios.
+3. Redactar un **informe ejecutivo breve** (máximo 4 líneas) para el responsable de la granja.
+4. Sugerir 5 **acciones concretas** para mejorar las condiciones o anticiparse a posibles riesgos.
+
+Datos disponibles (formato tabular, estadísticas): 
+{stats}
+
+Rangos ideales:
+- Temperatura: 27–31 °C
+- Humedad: 55–65 %
+- CO₂: < 800 ppm
+- PM2.5: < 35 µg/m³
+- Ruido: < 50 dB
+- Consumo eléctrico estable según horarios
+- Puerta: evitar aperturas prolongadas o frecuentes fuera de horario
+
+El tono debe ser profesional, directo y con visión preventiva. Usa emojis si lo consideras útil para resaltar acciones clave.
+"""
 
         client = OpenAI(api_key=open("/etc/secrets/openai_key.txt").read().strip())
 
