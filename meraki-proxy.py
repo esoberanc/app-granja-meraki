@@ -738,7 +738,6 @@ Tus tareas son:
 4. Sugerir 5 **acciones concretas** para mejorar las condiciones o anticiparse a posibles riesgos.
 
 Datos disponibles (formato tabular, estadísticas): 
-{stats}
 
 Rangos ideales:
 - Temperatura: 27–31 °C
@@ -748,6 +747,8 @@ Rangos ideales:
 - Ruido: < 50 dB
 - Consumo eléctrico estable según horarios
 - Puerta: evitar aperturas prolongadas o frecuentes fuera de horario
+
+{descripcion}
 
 El tono debe ser profesional, directo y con visión preventiva. Usa emojis si lo consideras útil para resaltar acciones clave.
 """
