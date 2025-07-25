@@ -119,10 +119,10 @@
         const blue = "#0e7490";
 
         if (data.sensor1 !== undefined)
-          actualizar("cuadro-1", `${data.sensor1.toFixed(1)}°C`, data.sensor1 < 22 || data.sensor1 > 30 ? red : (data.sensor1 < 24 || data.sensor1 > 28 ? yellow : green));
+          actualizar("cuadro-1", `${data.sensor1.toFixed(1)}°C`, data.sensor1 < 22 || data.sensor1 > 30 ? red : (data.sensor1 < 26 || data.sensor1 > 28 ? yellow : green));
 
         if (data.sensor2 !== undefined)
-          actualizar("cuadro-2", `${data.sensor2.toFixed(1)}°C`, data.sensor2 < 22 || data.sensor2 > 30 ? red : (data.sensor2 < 24 || data.sensor2 > 28 ? yellow : green));
+          actualizar("cuadro-2", `${data.sensor2.toFixed(1)}°C`, data.sensor2 < 22 || data.sensor2 > 30 ? red : (data.sensor2 < 26 || data.sensor2 > 28 ? yellow : green));
 
         if (data.multi1_co2 !== undefined) {
           const ppm = data.multi1_co2;
@@ -171,7 +171,7 @@ ${n} dB`, color);
 
         if (data.multi1_temp !== undefined) {
           const t = data.multi1_temp;
-          const color = t < 22 || t > 30 ? red : (t < 24 || t > 28 ? yellow : green);
+          const color = t < 22 || t > 30 ? red : (t < 26 || t > 28 ? yellow : green);
           actualizar("cuadro-13", `${t.toFixed(1)}°C`, color);
         }
 
