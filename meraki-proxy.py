@@ -18,7 +18,45 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash
 from supabase import create_client
+import os, requests, threading
 load_dotenv()
+
+
+
+# Shelly config
+SHELLY_API_URL = os.getenv("SHELLY_API_URL")
+SHELLY_DEVICE_ID = os.getenv("SHELLY_DEVICE_ID")
+SHELLY_AUTH_KEY = os.getenv("SHELLY_AUTH_KEY")
+HUM_THRESHOLD = float(os.getenv("HUM_THRESHOLD", "70"))
+SHELLY_ON_MINUTES = int(os.getenv("SHELLY_ON_MINUTES", "60"))
+
+_extractor_on = False
+_auto_off_timer = None
+
+def _shelly_set(on: bool):
+    """Enciende o apaga el Plug S Gen3 vía cloud."""
+    params = {"auth_key": SHELLY_AUTH_KEY}
+    body = {"id": SHELLY_DEVICE_ID, "channel": 0, "on": bool(on)}
+    headers = {"Content-Type": "application/json"}
+    r = requests.post(SHELLY_API_URL, params=params, json=body, headers=headers, timeout=8)
+    r.raise_for_status()
+
+def _schedule_auto_off(minutes: int):
+    global _auto_off_timer, _extractor_on
+    if _auto_off_timer:
+        try: _auto_off_timer.cancel()
+        except Exception: pass
+    _auto_off_timer = threading.Timer(minutes * 60, _auto_off)
+    _auto_off_timer.daemon = True
+    _auto_off_timer.start()
+
+def _auto_off():
+    global _extractor_on
+    try:
+        _shelly_set(False)
+    finally:
+        _extractor_on = False
+
 
 app = Flask(__name__)
 app.secret_key = "clave-secreta-super-segura"  # para sesiones
@@ -420,6 +458,18 @@ def obtener_datos_y_guardar():
 
         # guardar_en_sheets(result)
         guardar_en_supabase(result)
+                # --- Automatización Shelly por humedad alta ---
+        try:
+            hum = result.get("sensor1_humidity")
+            if hum is not None:
+                hum = float(hum)
+                if hum >= HUM_THRESHOLD and not _extractor_on:
+                    _shelly_set(True)
+                    _extractor_on = True
+                    _schedule_auto_off(SHELLY_ON_MINUTES)
+        except Exception as e:
+            print("Shelly auto error:", e)
+
         return jsonify(result)
     
 
@@ -752,3 +802,4 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
