@@ -463,6 +463,7 @@ def obtener_datos_y_guardar():
             hum = result.get("sensor1_humidity")
             if hum is not None:
                 hum = float(hum)
+                global _extractor_on
                 if hum >= HUM_THRESHOLD and not _extractor_on:
                     _shelly_set(True)
                     _extractor_on = True
@@ -802,4 +803,5 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
