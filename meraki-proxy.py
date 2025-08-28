@@ -39,6 +39,7 @@ def _shelly_set(on: bool):
     body = {"id": SHELLY_DEVICE_ID, "channel": 0, "on": bool(on)}
     headers = {"Content-Type": "application/json"}
     r = requests.post(SHELLY_API_URL, params=params, json=body, headers=headers, timeout=8)
+    print("🔥 Encendiendo extractor Shelly")
     r.raise_for_status()
 
 def _schedule_auto_off(minutes: int):
@@ -370,6 +371,7 @@ def envio_automatico_informe():
 
 @app.route("/sensor-data")
 def obtener_datos_y_guardar():
+    global _extractor_on
     url = f"https://api.meraki.com/api/v1/organizations/{ORGANIZATION_ID}/sensor/readings/latest"
     headers = {
         "X-Cisco-Meraki-API-Key": MERAKI_API_KEY,
@@ -463,7 +465,9 @@ def obtener_datos_y_guardar():
             hum = result.get("sensor1_humidity")
             if hum is not None:
                 hum = float(hum)
-                global _extractor_on
+                print("📊 Humedad sensor1:", hum)
+                print("🚦 Umbral configurado:", HUM_THRESHOLD)
+                print("💡 Estado extractor antes:", _extractor_on)
                 if hum >= HUM_THRESHOLD and not _extractor_on:
                     _shelly_set(True)
                     _extractor_on = True
@@ -803,5 +807,6 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
 
